@@ -14,8 +14,9 @@ export const CartItem = list({
     },
   },
   ui: {
+    isHidden: true,
     listView: {
-      initialColumns: ['product', 'quantity', 'user'],
+      initialColumns: ['product', 'quantity'],
     },
   },
   fields: {
@@ -27,6 +28,6 @@ export const CartItem = list({
       },
     }),
     product: relationship({ ref: 'Product' }),
-    user: relationship({ ref: 'User.cart' }),
+    // user: relationship({ ref: 'User.cart' }),
   },
 });

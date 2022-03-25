@@ -29,6 +29,7 @@ export const ProductImage = list({
     // product: relationship({ ref: 'Product.photo' }),
   },
   ui: {
+    isHidden: true,
     listView: {
       initialColumns: ['image', 'altText'],
     },

@@ -3,19 +3,9 @@ import { list } from '@keystone-6/core';
 import { rules, isSignedIn } from '../access';
 
 export const DiscountAction = list({
-  access: {
-    operation: {
-      create: isSignedIn,
-    },
-    filter: {
-      query: rules.canReadProducts,
-      update: rules.canManageProducts,
-      delete: rules.canManageProducts,
-    },
+  ui: {
+    isHidden: true,
   },
-  // ui: {
-  //   isHidden: true,
-  // },
   fields: {
     discountAmount: integer(),
     discountPercentage: integer(),

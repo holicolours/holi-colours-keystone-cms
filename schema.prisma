@@ -12,14 +12,12 @@ generator client {
 }
 
 model User {
-  id                      String     @id @default(cuid())
-  name                    String     @default("")
-  email                   String     @unique @default("")
+  id                      String    @id @default(cuid())
+  name                    String    @default("")
+  email                   String    @unique @default("")
   password                String?
-  cart                    CartItem[] @relation("CartItem_user")
-  orders                  Order[]    @relation("Order_user")
-  role                    Role?      @relation("User_role", fields: [roleId], references: [id])
-  roleId                  String?    @map("role")
+  role                    Role?     @relation("User_role", fields: [roleId], references: [id])
+  roleId                  String?   @map("role")
   passwordResetToken      String?
   passwordResetIssuedAt   DateTime?
   passwordResetRedeemedAt DateTime?
@@ -28,30 +26,69 @@ model User {
 }
 
 model Category {
-  id               String     @id @default(cuid())
-  name             String     @default("")
-  parentCategories Category[] @relation("Category_childCategories")
-  childCategories  Category[] @relation("Category_childCategories")
-  products         Product[]  @relation("Category_products")
+  id                    String     @id @default(cuid())
+  name                  String     @unique @default("")
+  slug                  String     @unique @default("")
+  parentCategories      Category[] @relation("Category_childCategories")
+  childCategories       Category[] @relation("Category_childCategories")
+  featureInHomePage     Boolean    @default(false)
+  products              Product[]  @relation("Category_products")
+  additionalInformation Json       @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
+  creationDate          DateTime?
+  lastUpdatedDate       DateTime?
+}
+
+model Tag {
+  id       String    @id @default(cuid())
+  products Product[] @relation("Product_tags")
+  tag      String    @unique @default("")
+}
+
+model Image {
+  id                            String    @id @default(cuid())
+  image                         Json?
+  from_Product_additionalImages Product[] @relation("Product_additionalImages")
+  from_Review_images            Review[]  @relation("Review_images")
+}
+
+model Color {
+  id                        String    @id @default(cuid())
+  name                      String    @unique @default("")
+  hexColor                  String    @unique @default("")
+  from_Product_colorPalette Product[] @relation("Product_colorPalette")
+}
+
+model EmbedLink {
+  id                           String    @id @default(cuid())
+  embedLink                    String    @default("")
+  from_Product_videoEmbedLinks Product[] @relation("Product_videoEmbedLinks")
+  from_Review_videoEmbedLinks  Review[]  @relation("Review_videoEmbedLinks")
 }
 
 model Product {
-  id                                  String              @id @default(cuid())
-  name                                String              @default("")
-  status                              String?             @default("DRAFT")
-  description                         String              @default("")
-  additionalInformation               Json                @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
-  options                             ProductOption[]     @relation("ProductOption_product")
-  variants                            ProductVariant[]    @relation("ProductVariant_product")
-  vendor                              Vendor?             @relation("Product_vendor", fields: [vendorId], references: [id])
-  vendorId                            String?             @map("vendor")
-  from_Category_products              Category[]          @relation("Category_products")
-  from_Stock_product                  Stock[]             @relation("Stock_product")
-  from_CartItem_product               CartItem[]          @relation("CartItem_product")
-  from_DiscountCondition_productsIsIn DiscountCondition[] @relation("DiscountCondition_productsIsIn")
-  from_DiscountAction_freebieProducts DiscountAction[]    @relation("DiscountAction_freebieProducts")
-
-  @@index([vendorId])
+  id                                  String               @id @default(cuid())
+  name                                String               @unique @default("")
+  slug                                String               @unique @default("")
+  status                              String?              @default("DRAFT")
+  sku                                 Int?
+  description                         String               @default("")
+  additionalInformation               Json                 @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
+  options                             ProductOption[]      @relation("ProductOption_product")
+  colorPalette                        Color[]              @relation("Product_colorPalette")
+  defaultVariantOptions               ProductOptionValue[] @relation("Product_defaultVariantOptions")
+  categories                          Category[]           @relation("Category_products")
+  tags                                Tag[]                @relation("Product_tags")
+  variants                            ProductVariant[]     @relation("ProductVariant_product")
+  accessories                         Accessory[]          @relation("Accessory_products")
+  reviews                             Review[]             @relation("Review_product")
+  additionalImages                    Image[]              @relation("Product_additionalImages")
+  videoEmbedLinks                     EmbedLink[]          @relation("Product_videoEmbedLinks")
+  creationDate                        DateTime?
+  lastUpdatedDate                     DateTime?
+  from_Stock_product                  Stock[]              @relation("Stock_product")
+  from_CartItem_product               CartItem[]           @relation("CartItem_product")
+  from_DiscountCondition_productsIsIn DiscountCondition[]  @relation("DiscountCondition_productsIsIn")
+  from_DiscountAction_freebieProducts DiscountAction[]     @relation("DiscountAction_freebieProducts")
 }
 
 model ProductOption {
@@ -73,56 +110,98 @@ model ProductOptionName {
 }
 
 model ProductOptionValue {
-  id                              String          @id @default(cuid())
-  optionValue                     String          @default("")
-  from_ProductOption_optionValues ProductOption[] @relation("ProductOption_optionValues")
+  id                                 String           @id @default(cuid())
+  optionValue                        String           @default("")
+  from_Product_defaultVariantOptions Product[]        @relation("Product_defaultVariantOptions")
+  from_ProductOption_optionValues    ProductOption[]  @relation("ProductOption_optionValues")
+  from_ProductVariant_options        ProductVariant[] @relation("ProductVariant_options")
 }
 
 model ProductVariant {
-  id             String   @id @default(cuid())
-  product        Product? @relation("ProductVariant_product", fields: [productId], references: [id])
-  productId      String?  @map("product")
-  title          String   @default("")
-  enabled        String?  @default("YES")
-  defaultVariant String?  @default("NO")
-  description    String   @default("")
-  image          Json?
-  regularPrice   Int
-  salePrice      Int?
-  length         Int
-  width          Int
-  height         Int
-  weight         Int
-  stock          Stock?   @relation("ProductVariant_stock", fields: [stockId], references: [id])
-  stockId        String?  @unique @map("stock")
+  id            String               @id @default(cuid())
+  product       Product?             @relation("ProductVariant_product", fields: [productId], references: [id])
+  productId     String?              @map("product")
+  options       ProductOptionValue[] @relation("ProductVariant_options")
+  status        String?              @default("DRAFT")
+  description   String               @default("")
+  image         Json?
+  regularPrice  Int
+  salePrice     Int?
+  length        Float?
+  width         Float?
+  height        Float?
+  weight        Float
+  packageLength Float                @default(0)
+  packageWidth  Float                @default(0)
+  packageHeight Float                @default(0)
+  sku           Stock?               @relation("ProductVariant_sku", fields: [skuId], references: [id])
+  skuId         String?              @unique @map("sku")
 
   @@index([productId])
 }
 
 model ProductImage {
-  id                   String      @id @default(cuid())
-  image                Json?
-  altText              String      @default("")
-  from_OrderItem_photo OrderItem[] @relation("OrderItem_photo")
+  id      String @id @default(cuid())
+  image   Json?
+  altText String @default("")
+}
+
+model Accessory {
+  id       String    @id @default(cuid())
+  name     String    @default("")
+  status   String?   @default("DRAFT")
+  price    Int
+  products Product[] @relation("Accessory_products")
 }
 
 model Stock {
-  id             String          @id @default(cuid())
-  product        Product?        @relation("Stock_product", fields: [productId], references: [id])
-  productId      String?         @map("product")
-  variant        ProductVariant? @relation("ProductVariant_stock")
-  stockQuantity  Int
-  dateOfPurchase DateTime?
+  id                  String          @id @default(cuid())
+  sku                 String          @unique @default("")
+  product             Product?        @relation("Stock_product", fields: [productId], references: [id])
+  productId           String?         @map("product")
+  variant             ProductVariant? @relation("ProductVariant_sku")
+  status              String?         @default("OS")
+  stock               Int             @default(0)
+  inboundStock        InboundStock[]  @relation("InboundStock_sku")
+  outboundStock       OutboundStock[] @relation("OutboundStock_sku")
+  inventoryLocation   String          @default("")
+  vendor              Vendor?         @relation("Stock_vendor", fields: [vendorId], references: [id])
+  vendorId            String?         @map("vendor")
+  subscribedCustomers Customer[]      @relation("Customer_skuSubscriptions")
+  from_OrderItem_sku  OrderItem[]     @relation("OrderItem_sku")
 
   @@index([productId])
+  @@index([vendorId])
+}
+
+model InboundStock {
+  id             String   @id @default(cuid())
+  sku            Stock?   @relation("InboundStock_sku", fields: [skuId], references: [id])
+  skuId          String?  @map("sku")
+  stockQuantity  Int
+  dateOfPurchase DateTime @default(now())
+
+  @@index([skuId])
+}
+
+model OutboundStock {
+  id            String  @id @default(cuid())
+  sku           Stock?  @relation("OutboundStock_sku", fields: [skuId], references: [id])
+  skuId         String? @map("sku")
+  stockQuantity Int
+  order         Order?  @relation("OutboundStock_order", fields: [orderId], references: [id])
+  orderId       String? @map("order")
+
+  @@index([skuId])
+  @@index([orderId])
 }
 
 model Vendor {
-  id           String    @id @default(cuid())
-  name         String    @default("")
-  mobileNumber String    @default("")
-  address      String    @default("")
-  products     Product[] @relation("Product_vendor")
+  id           String  @id @default(cuid())
+  name         String  @default("")
+  mobileNumber String  @default("")
+  address      String  @default("")
+  skus         Stock[] @relation("Stock_vendor")
 }
 
 model CartItem {
@@ -130,37 +209,85 @@ model CartItem {
   quantity  Int      @default(1)
   product   Product? @relation("CartItem_product", fields: [productId], references: [id])
   productId String?  @map("product")
-  user      User?    @relation("CartItem_user", fields: [userId], references: [id])
-  userId    String?  @map("user")
 
   @@index([productId])
-  @@index([userId])
-}
-
-model OrderItem {
-  id          String        @id @default(cuid())
-  name        String        @default("")
-  description String        @default("")
-  photo       ProductImage? @relation("OrderItem_photo", fields: [photoId], references: [id])
-  photoId     String?       @map("photo")
-  price       Int?
-  quantity    Int?
-  order       Order?        @relation("OrderItem_order", fields: [orderId], references: [id])
-  orderId     String?       @map("order")
-
-  @@index([photoId])
-  @@index([orderId])
 }
 
 model Order {
-  id     String      @id @default(cuid())
-  total  Int?
-  items  OrderItem[] @relation("OrderItem_order")
-  user   User?       @relation("Order_user", fields: [userId], references: [id])
-  userId String?     @map("user")
-  charge String      @default("")
+  id                           String          @id @default(cuid())
+  orderNumber                  String          @default("")
+  orderDate                    DateTime?
+  status                       String?         @default("PP")
+  items                        OrderItem[]     @relation("OrderItem_order")
+  subTotal                     Int?
+  shippingMethod               String          @default("")
+  shippingCharge               Int?
+  discount                     Int?
+  total                        Int?
+  customer                     Customer?       @relation("Order_customer", fields: [customerId], references: [id])
+  customerId                   String?         @map("customer")
+  customerFirstName            String          @default("")
+  customerLastName             String          @default("")
+  customerEmail                String          @default("")
+  customerPhoneNumber          String          @default("")
+  customerAlternatePhoneNumber String          @default("")
+  shipToAddress1               String          @default("")
+  shipToAddress2               String          @default("")
+  shipToCity                   String          @default("")
+  shipToState                  String          @default("")
+  shipToCountry                String          @default("")
+  shipToPostalCode             String          @default("")
+  notes                        OrderNote[]     @relation("OrderNote_order")
+  cartJSON                     Json?
+  from_OutboundStock_order     OutboundStock[] @relation("OutboundStock_order")
 
-  @@index([userId])
+  @@index([customerId])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  order     Order?  @relation("OrderItem_order", fields: [orderId], references: [id])
+  orderId   String? @map("order")
+  item      String  @default("")
+  image     Json?
+  sku       Stock?  @relation("OrderItem_sku", fields: [skuId], references: [id])
+  skuId     String? @map("sku")
+  quantity  Int
+  unitPrice Int
+  total     Int
+
+  @@index([orderId])
+  @@index([skuId])
+}
+
+model OrderNote {
+  id      String    @id @default(cuid())
+  order   Order?    @relation("OrderNote_order", fields: [orderId], references: [id])
+  orderId String?   @map("order")
+  note    String    @default("")
+  date    DateTime?
+
+  @@index([orderId])
+}
+
+model Customer {
+  id                   String   @id @default(cuid())
+  uid                  String   @default("")
+  firstName            String   @default("")
+  lastName             String   @default("")
+  email                String   @default("")
+  status               String?  @default("G")
+  phoneNumber          String   @default("")
+  alternatePhoneNumber String   @default("")
+  shipToAddress1       String   @default("")
+  shipToAddress2       String   @default("")
+  shipToCity           String   @default("")
+  shipToState          String   @default("")
+  shipToCountry        String   @default("")
+  shipToPostalCode     String   @default("")
+  skuSubscriptions     Stock[]  @relation("Customer_skuSubscriptions")
+  orders               Order[]  @relation("Order_customer")
+  reviews              Review[] @relation("Review_customerEmail")
 }
 
 model Discount {
@@ -205,4 +332,45 @@ model Role {
   canManageCart     Boolean @default(false)
   canManageOrders   Boolean @default(false)
   assignedTo        User[]  @relation("User_role")
+}
+
+model ShippingZone {
+  id          String           @id @default(cuid())
+  country     String           @default("")
+  countryCode String           @default("")
+  state       String           @default("")
+  stateCode   String           @default("")
+  methods     ShippingMethod[] @relation("ShippingMethod_zones")
+}
+
+model ShippingMethod {
+  id                   String         @id @default(cuid())
+  name                 String         @default("")
+  method               String         @default("")
+  zones                ShippingZone[] @relation("ShippingMethod_zones")
+  expectedDeliveryText String         @default("")
+  baseCost             Int
+  charge               Int
+  perEachKg            Int
+  overKg               Int
+}
+
+model Review {
+  id                String      @id @default(cuid())
+  product           Product?    @relation("Review_product", fields: [productId], references: [id])
+  productId         String?     @map("product")
+  title             String      @default("")
+  message           String      @default("")
+  rating            String?
+  images            Image[]     @relation("Review_images")
+  videoEmbedLinks   EmbedLink[] @relation("Review_videoEmbedLinks")
+  customerName      String      @default("")
+  customerEmail     Customer?   @relation("Review_customerEmail", fields: [customerEmailId], references: [id])
+  customerEmailId   String?     @map("customerEmail")
+  isCelebrityReview Boolean     @default(false)
+  featureInHomePage Boolean     @default(false)
+  createdOn         DateTime?
+
+  @@index([productId])
+  @@index([customerEmailId])
 }

@@ -19,20 +19,14 @@ export const User = list({
     // hide the backend UI from regular users
     hideCreate: args => !permissions.canManageUsers(args),
     hideDelete: args => !permissions.canManageUsers(args),
+    listView: {
+      initialColumns: ['name', 'email', 'role']
+    }
   },
   fields: {
     name: text({ validation: { isRequired: true } }),
     email: text({ isIndexed: 'unique', validation: { isRequired: true } }),
     password: password(),
-    cart: relationship({
-      ref: 'CartItem.user',
-      many: true,
-      ui: {
-        createView: { fieldMode: 'hidden' },
-        itemView: { fieldMode: 'read' },
-      },
-    }),
-    orders: relationship({ ref: 'Order.user', many: true }),
     role: relationship({
       ref: 'Role.assignedTo',
       access: {

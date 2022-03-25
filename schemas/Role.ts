@@ -4,18 +4,18 @@ import { isSignedIn, permissions } from '../access';
 import { permissionFields } from './fields';
 
 export const Role = list({
-  access: {
-    operation: {
-      create: isSignedIn,
-      query: permissions.canManageRoles,
-      update: permissions.canManageRoles,
-      delete: permissions.canManageRoles,
-    },
-  },
+  // access: {
+  //   operation: {
+  //     create: isSignedIn,
+  //     query: permissions.canManageRoles,
+  //     update: permissions.canManageRoles,
+  //     delete: permissions.canManageRoles,
+  //   },
+  // },
   ui: {
     hideCreate: args => !permissions.canManageRoles(args),
     hideDelete: args => !permissions.canManageRoles(args),
-    isHidden: args => !permissions.canManageRoles(args),
+    isHidden: true,
   },
   fields: {
     name: text({ validation: { isRequired: true } }),
