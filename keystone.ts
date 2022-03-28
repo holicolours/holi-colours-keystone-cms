@@ -31,7 +31,6 @@ import { Offer } from './schemas/Offer';
 import { User } from './schemas/User';
 import { Customer } from './schemas/Customer';
 import { sendPasswordResetEmail } from './lib/mail';
-import { extendGraphqlSchema } from './mutations';
 var firebase = require('firebase-admin');
 
 const serviceAccount = {
@@ -134,7 +133,6 @@ export default withAuth(
       ShippingMethod,
       Review
     },
-    extendGraphqlSchema,
     ui: {
       // Show the UI only for poeple who pass this test
       isAccessAllowed: ({ session }) => !!session,
