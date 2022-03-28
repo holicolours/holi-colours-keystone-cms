@@ -12,7 +12,8 @@ export const Order = list({
       initialSort: {
         field: 'orderNumber',
         direction: 'DESC'
-      }
+      },
+      pageSize: 10
     },
     hideCreate: true,
     hideDelete: true,

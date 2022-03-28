@@ -7,6 +7,7 @@ export const OrderNote = list({
     labelField: 'note',
     listView: {
       initialColumns: ['note', 'date'],
+      pageSize: 10,
     },
   },
   fields: {

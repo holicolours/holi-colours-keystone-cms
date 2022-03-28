@@ -12,7 +12,8 @@ export const InboundStock = list({
       initialSort: {
         field: 'dateOfPurchase',
         direction: 'DESC'
-      }
+      },
+      pageSize: 10,
     },
   },
   fields: {

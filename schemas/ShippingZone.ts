@@ -6,6 +6,7 @@ export const ShippingZone = list({
   ui: {
     listView: {
       initialColumns: ['name', 'country', 'state', 'methods'],
+      pageSize: 10,
     },
   },
   fields: {

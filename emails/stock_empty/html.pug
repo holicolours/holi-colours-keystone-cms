@@ -1,0 +1,22 @@
+html
+  head
+    style table, th, td {border: 1px solid black;}
+  body
+    div(marginwidth="0" marginheight="0" style="padding:0") 
+      p Hi Holi Colours,
+      p The following product is out of stock.
+      table
+        thead
+          tr
+            th SKU
+            th Product Name
+            th Variant
+            th Stock
+        tbody
+          tr
+            td #{sku}
+            td #{productName}
+            td #{variant}
+            td #{stock}
+      p Thanks,
+      p Invenory Management System

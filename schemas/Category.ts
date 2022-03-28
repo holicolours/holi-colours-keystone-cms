@@ -7,6 +7,7 @@ export const Category = list({
   ui: {
     listView: {
       initialColumns: ['name', 'parentCategories', 'childCategories'],
+      pageSize: 10,
     },
   },
   fields: {

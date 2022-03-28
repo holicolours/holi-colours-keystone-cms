@@ -10,6 +10,7 @@ export const Customer = list({
     labelField: 'email',
     listView: {
       initialColumns: ['firstName', 'lastName', 'email', 'phoneNumber'],
+      pageSize: 10,
     },
   },
   fields: {

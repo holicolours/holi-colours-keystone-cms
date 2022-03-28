@@ -8,6 +8,7 @@ export const Product = list({
   ui: {
     listView: {
       initialColumns: ['name', 'status', 'sku', 'price', 'categories', 'options', 'variants'],
+      pageSize: 10
     },
   },
   fields: {
@@ -18,9 +19,6 @@ export const Product = list({
       isIndexed: 'unique'
     }),
     slug: text({
-      validation: {
-        isRequired: true,
-      },
       isIndexed: 'unique',
       ui: {
         createView: {
@@ -97,21 +95,25 @@ export const Product = list({
         cardFields: ['option'],
         inlineCreate: { fields: ['optionName', 'optionValues'] },
         inlineEdit: { fields: ['optionName', 'optionValues'] },
-        // inlineConnect: false,
-        // linkToItem: true,
+        inlineConnect: false,
         createView: { fieldMode: 'hidden' },
       },
       many: true
     }),
-    colorPalette: relationship({
-      ref: 'Color',
+    defaultVariantOptions: relationship({
+      ref: 'VariantOption',
       many: true,
       ui: {
-        createView: { fieldMode: 'hidden' }
+        createView: { fieldMode: 'hidden' },
+        displayMode: 'cards',
+        cardFields: ['option'],
+        inlineCreate: { fields: ['optionName', 'optionValue'] },
+        inlineEdit: { fields: ['optionName', 'optionValue'] },
+        inlineConnect: false,
       }
     }),
-    defaultVariantOptions: relationship({
-      ref: 'ProductOptionValue',
+    colorPalette: relationship({
+      ref: 'Color',
       many: true,
       ui: {
         createView: { fieldMode: 'hidden' }
@@ -137,9 +139,8 @@ export const Product = list({
       ui: {
         displayMode: 'cards',
         createView: { fieldMode: 'hidden' },
-        cardFields: ['title', 'image', 'price', 'stock'],
-        // inlineCreate: { fields: ['title', 'enabled', 'defaultVariant', 'image', 'regularPrice', 'length', 'width', 'weight', 'height', 'stock'] },
-        // inlineEdit: { fields: ['title', 'enabled', 'defaultVariant', 'image', 'regularPrice', 'length', 'width', 'weight', 'height', 'stock'] },
+        cardFields: ['title', 'status', 'image', 'price', 'stock', 'sku'],
+        inlineCreate: { fields: ['options', 'status', 'image', 'regularPrice', 'length', 'width', 'height', 'weight', 'packageLength', 'packageWidth', 'packageHeight'] },
         inlineConnect: false,
         linkToItem: true
       },

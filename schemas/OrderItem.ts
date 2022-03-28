@@ -11,6 +11,7 @@ export const OrderItem = list({
     labelField: 'item',
     listView: {
       initialColumns: ['order', 'item', 'image', 'sku', 'quantity', 'unitPriceINR', 'totalINR'],
+      pageSize: 10,
     },
     hideCreate: true,
     hideDelete: true,

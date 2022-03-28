@@ -26,6 +26,7 @@ export const ProductVariant = list({
     isHidden: true,
     listView: {
       initialColumns: ['title', 'status', 'sku', 'image', 'price', 'status', 'stock'],
+      pageSize: 10,
     },
   },
   fields: {
@@ -38,8 +39,16 @@ export const ProductVariant = list({
       }
     }),
     options: relationship({
-      ref: 'ProductOptionValue',
-      many: true
+      ref: 'VariantOption.variant',
+      many: true,
+      ui: {
+        createView: { fieldMode: 'hidden' },
+        displayMode: 'cards',
+        cardFields: ['option'],
+        inlineCreate: { fields: ['optionName', 'optionValue'] },
+        inlineEdit: { fields: ['optionName', 'optionValue'] },
+        inlineConnect: false,
+      }
     }),
     title: virtual({
       field: graphql.field({
@@ -49,9 +58,9 @@ export const ProductVariant = list({
           let variant = item as any;
           variantTitle = context.query.ProductVariant.findOne({
             where: { id: variant.id },
-            query: 'options { optionValue }'
+            query: 'options { optionName { optionName } optionValue { optionValue } }'
           }).then((value) => {
-            let title = value.options.map((v: { optionValue: any; }) => v.optionValue).join(" x ");
+            let title = value.options.map((v: { optionName: { optionName: string; }; optionValue: { optionValue: string; }; }) => v.optionName.optionName + ': ' + v.optionValue.optionValue).join(", ");
             return title ? title : 'Simple Product';
           }) as any;
           return variantTitle;
@@ -110,9 +119,9 @@ export const ProductVariant = list({
         itemView: { fieldMode: 'hidden' }
       }
     }),
-    length: float({ validation: { isRequired: false } }),
-    width: float({ validation: { isRequired: false } }),
-    height: float({ validation: { isRequired: false } }),
+    length: float({ validation: { isRequired: true }, defaultValue: 0 }),
+    width: float({ validation: { isRequired: true }, defaultValue: 0 }),
+    height: float({ validation: { isRequired: true }, defaultValue: 0 }),
     weight: float({ validation: { isRequired: true } }),
     packageLength: float({ validation: { isRequired: true }, defaultValue: 0 }),
     packageWidth: float({ validation: { isRequired: true }, defaultValue: 0 }),
@@ -123,12 +132,6 @@ export const ProductVariant = list({
       ui: {
         itemView: { fieldMode: 'read' },
         createView: { fieldMode: 'hidden' },
-        // displayMode: 'cards',
-        // cardFields: ['sku'],
-        // inlineCreate: { fields: [] },
-        // inlineEdit: { fields: ['inboundStock', 'vendor'] },
-        // inlineConnect: false,
-        // linkToItem: true
       }
     }),
     stock: virtual({
@@ -136,7 +139,7 @@ export const ProductVariant = list({
         type: graphql.Int,
         async resolve(item, args, context) {
           let variant = item as any;
-          // console.log(variant);
+          if (!variant.skuId) return 0;
           const s = await context.query.Stock.findOne({
             where: { id: variant.skuId },
             query: 'stock'

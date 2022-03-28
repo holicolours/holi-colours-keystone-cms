@@ -7,8 +7,6 @@ import { Role } from './schemas/Role';
 import { Order } from './schemas/Order';
 import { OrderItem } from './schemas/OrderItem';
 import { OrderNote } from './schemas/OrderNote';
-import { CartItem } from './schemas/CartItem';
-import { ProductImage } from './schemas/ProductImage';
 import { Category } from './schemas/Category';
 import { Product } from './schemas/Product';
 import { Image } from './schemas/Image';
@@ -19,6 +17,7 @@ import { ProductOption } from './schemas/ProductOption';
 import { ProductOptionName } from './schemas/ProductOptionName';
 import { ProductOptionValue } from './schemas/ProductOptionValue';
 import { ProductVariant } from './schemas/ProductVariant';
+import { VariantOption } from './schemas/VariantOption';
 import { Accessory } from './schemas/Accessory';
 import { Stock } from './schemas/Stock';
 import { InboundStock } from './schemas/InboundStock';
@@ -27,9 +26,8 @@ import { ShippingZone } from './schemas/ShippingZone';
 import { ShippingMethod } from './schemas/ShippingMethod';
 import { Vendor } from './schemas/Vendor';
 import { Review } from './schemas/Review';
-import { Discount } from './schemas/Discount';
-import { DiscountCondition } from './schemas/DiscountCondition';
-import { DiscountAction } from './schemas/DiscountAction';
+import { Sale } from './schemas/Sale';
+import { Offer } from './schemas/Offer';
 import { User } from './schemas/User';
 import { Customer } from './schemas/Customer';
 import { sendPasswordResetEmail } from './lib/mail';
@@ -88,7 +86,6 @@ export default withAuth(
     db: {
       provider: 'postgresql',
       url: databaseURL,
-      useMigrations: true,
       async onConnect(context) {
         console.log('Connected to the database!');
 
@@ -120,20 +117,18 @@ export default withAuth(
       ProductOptionName,
       ProductOptionValue,
       ProductVariant,
-      ProductImage,
+      VariantOption,
       Accessory,
       Stock,
       InboundStock,
       OutboundStock,
       Vendor,
-      CartItem,
       Order,
       OrderItem,
       OrderNote,
       Customer,
-      Discount,
-      DiscountCondition,
-      DiscountAction,
+      Sale,
+      Offer,
       Role,
       ShippingZone,
       ShippingMethod,

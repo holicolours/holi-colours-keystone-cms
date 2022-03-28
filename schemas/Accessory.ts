@@ -12,6 +12,7 @@ export const Accessory = list({
   ui: {
     listView: {
       initialColumns: ['name', 'status', 'price'],
+      pageSize: 10,
     },
   },
   fields: {

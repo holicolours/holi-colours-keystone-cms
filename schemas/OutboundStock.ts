@@ -6,6 +6,9 @@ export const OutboundStock = list({
     isHidden: true,
     labelField: 'title',
     hideDelete: true,
+    listView: {
+      pageSize: 10,
+    }
   },
   fields: {
     title: virtual({

@@ -115,15 +115,17 @@ type Mutation {
   deleteProductVariants(
     where: [ProductVariantWhereUniqueInput!]!
   ): [ProductVariant]
-  createProductImage(data: ProductImageCreateInput!): ProductImage
-  createProductImages(data: [ProductImageCreateInput!]!): [ProductImage]
-  updateProductImage(
-    where: ProductImageWhereUniqueInput!
-    data: ProductImageUpdateInput!
-  ): ProductImage
-  updateProductImages(data: [ProductImageUpdateArgs!]!): [ProductImage]
-  deleteProductImage(where: ProductImageWhereUniqueInput!): ProductImage
-  deleteProductImages(where: [ProductImageWhereUniqueInput!]!): [ProductImage]
+  createVariantOption(data: VariantOptionCreateInput!): VariantOption
+  createVariantOptions(data: [VariantOptionCreateInput!]!): [VariantOption]
+  updateVariantOption(
+    where: VariantOptionWhereUniqueInput!
+    data: VariantOptionUpdateInput!
+  ): VariantOption
+  updateVariantOptions(data: [VariantOptionUpdateArgs!]!): [VariantOption]
+  deleteVariantOption(where: VariantOptionWhereUniqueInput!): VariantOption
+  deleteVariantOptions(
+    where: [VariantOptionWhereUniqueInput!]!
+  ): [VariantOption]
   createAccessory(data: AccessoryCreateInput!): Accessory
   createAccessories(data: [AccessoryCreateInput!]!): [Accessory]
   updateAccessory(
@@ -207,45 +209,18 @@ type Mutation {
   updateCustomers(data: [CustomerUpdateArgs!]!): [Customer]
   deleteCustomer(where: CustomerWhereUniqueInput!): Customer
   deleteCustomers(where: [CustomerWhereUniqueInput!]!): [Customer]
-  createDiscount(data: DiscountCreateInput!): Discount
-  createDiscounts(data: [DiscountCreateInput!]!): [Discount]
-  updateDiscount(
-    where: DiscountWhereUniqueInput!
-    data: DiscountUpdateInput!
-  ): Discount
-  updateDiscounts(data: [DiscountUpdateArgs!]!): [Discount]
-  deleteDiscount(where: DiscountWhereUniqueInput!): Discount
-  deleteDiscounts(where: [DiscountWhereUniqueInput!]!): [Discount]
-  createDiscountCondition(
-    data: DiscountConditionCreateInput!
-  ): DiscountCondition
-  createDiscountConditions(
-    data: [DiscountConditionCreateInput!]!
-  ): [DiscountCondition]
-  updateDiscountCondition(
-    where: DiscountConditionWhereUniqueInput!
-    data: DiscountConditionUpdateInput!
-  ): DiscountCondition
-  updateDiscountConditions(
-    data: [DiscountConditionUpdateArgs!]!
-  ): [DiscountCondition]
-  deleteDiscountCondition(
-    where: DiscountConditionWhereUniqueInput!
-  ): DiscountCondition
-  deleteDiscountConditions(
-    where: [DiscountConditionWhereUniqueInput!]!
-  ): [DiscountCondition]
-  createDiscountAction(data: DiscountActionCreateInput!): DiscountAction
-  createDiscountActions(data: [DiscountActionCreateInput!]!): [DiscountAction]
-  updateDiscountAction(
-    where: DiscountActionWhereUniqueInput!
-    data: DiscountActionUpdateInput!
-  ): DiscountAction
-  updateDiscountActions(data: [DiscountActionUpdateArgs!]!): [DiscountAction]
-  deleteDiscountAction(where: DiscountActionWhereUniqueInput!): DiscountAction
-  deleteDiscountActions(
-    where: [DiscountActionWhereUniqueInput!]!
-  ): [DiscountAction]
+  createSale(data: SaleCreateInput!): Sale
+  createSales(data: [SaleCreateInput!]!): [Sale]
+  updateSale(where: SaleWhereUniqueInput!, data: SaleUpdateInput!): Sale
+  updateSales(data: [SaleUpdateArgs!]!): [Sale]
+  deleteSale(where: SaleWhereUniqueInput!): Sale
+  deleteSales(where: [SaleWhereUniqueInput!]!): [Sale]
+  createOffer(data: OfferCreateInput!): Offer
+  createOffers(data: [OfferCreateInput!]!): [Offer]
+  updateOffer(where: OfferWhereUniqueInput!, data: OfferUpdateInput!): Offer
+  updateOffers(data: [OfferUpdateArgs!]!): [Offer]
+  deleteOffer(where: OfferWhereUniqueInput!): Offer
+  deleteOffers(where: [OfferWhereUniqueInput!]!): [Offer]
   createRole(data: RoleCreateInput!): Role
   createRoles(data: [RoleCreateInput!]!): [Role]
   updateRole(where: RoleWhereUniqueInput!, data: RoleUpdateInput!): Role
@@ -353,13 +328,7 @@ input StringFilter {
   contains: String
   startsWith: String
   endsWith: String
-  mode: QueryMode
   not: NestedStringFilter
-}
-
-enum QueryMode {
-  default
-  insensitive
 }
 
 input NestedStringFilter {
@@ -801,6 +770,13 @@ type Product {
     skip: Int! = 0
   ): [ProductOption!]
   optionsCount(where: ProductOptionWhereInput! = {}): Int
+  defaultVariantOptions(
+    where: VariantOptionWhereInput! = {}
+    orderBy: [VariantOptionOrderByInput!]! = []
+    take: Int
+    skip: Int! = 0
+  ): [VariantOption!]
+  defaultVariantOptionsCount(where: VariantOptionWhereInput! = {}): Int
   colorPalette(
     where: ColorWhereInput! = {}
     orderBy: [ColorOrderByInput!]! = []
@@ -808,13 +784,6 @@ type Product {
     skip: Int! = 0
   ): [Color!]
   colorPaletteCount(where: ColorWhereInput! = {}): Int
-  defaultVariantOptions(
-    where: ProductOptionValueWhereInput! = {}
-    orderBy: [ProductOptionValueOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [ProductOptionValue!]
-  defaultVariantOptionsCount(where: ProductOptionValueWhereInput! = {}): Int
   categories(
     where: CategoryWhereInput! = {}
     orderBy: [CategoryOrderByInput!]! = []
@@ -891,8 +860,8 @@ input ProductWhereInput {
   sku: IntNullableFilter
   description: StringFilter
   options: ProductOptionManyRelationFilter
+  defaultVariantOptions: VariantOptionManyRelationFilter
   colorPalette: ColorManyRelationFilter
-  defaultVariantOptions: ProductOptionValueManyRelationFilter
   categories: CategoryManyRelationFilter
   tags: TagManyRelationFilter
   variants: ProductVariantManyRelationFilter
@@ -915,7 +884,6 @@ input StringNullableFilter {
   contains: String
   startsWith: String
   endsWith: String
-  mode: QueryMode
   not: NestedStringNullableFilter
 }
 
@@ -950,16 +918,16 @@ input ProductOptionManyRelationFilter {
   none: ProductOptionWhereInput
 }
 
+input VariantOptionManyRelationFilter {
+  every: VariantOptionWhereInput
+  some: VariantOptionWhereInput
+  none: VariantOptionWhereInput
+}
+
 input ColorManyRelationFilter {
   every: ColorWhereInput
   some: ColorWhereInput
   none: ColorWhereInput
-}
-
-input ProductOptionValueManyRelationFilter {
-  every: ProductOptionValueWhereInput
-  some: ProductOptionValueWhereInput
-  none: ProductOptionValueWhereInput
 }
 
 input TagManyRelationFilter {
@@ -1017,8 +985,8 @@ input ProductUpdateInput {
   description: String
   additionalInformation: JSON
   options: ProductOptionRelateToManyForUpdateInput
+  defaultVariantOptions: VariantOptionRelateToManyForUpdateInput
   colorPalette: ColorRelateToManyForUpdateInput
-  defaultVariantOptions: ProductOptionValueRelateToManyForUpdateInput
   categories: CategoryRelateToManyForUpdateInput
   tags: TagRelateToManyForUpdateInput
   variants: ProductVariantRelateToManyForUpdateInput
@@ -1037,18 +1005,18 @@ input ProductOptionRelateToManyForUpdateInput {
   connect: [ProductOptionWhereUniqueInput!]
 }
 
+input VariantOptionRelateToManyForUpdateInput {
+  disconnect: [VariantOptionWhereUniqueInput!]
+  set: [VariantOptionWhereUniqueInput!]
+  create: [VariantOptionCreateInput!]
+  connect: [VariantOptionWhereUniqueInput!]
+}
+
 input ColorRelateToManyForUpdateInput {
   disconnect: [ColorWhereUniqueInput!]
   set: [ColorWhereUniqueInput!]
   create: [ColorCreateInput!]
   connect: [ColorWhereUniqueInput!]
-}
-
-input ProductOptionValueRelateToManyForUpdateInput {
-  disconnect: [ProductOptionValueWhereUniqueInput!]
-  set: [ProductOptionValueWhereUniqueInput!]
-  create: [ProductOptionValueCreateInput!]
-  connect: [ProductOptionValueWhereUniqueInput!]
 }
 
 input TagRelateToManyForUpdateInput {
@@ -1106,8 +1074,8 @@ input ProductCreateInput {
   description: String
   additionalInformation: JSON
   options: ProductOptionRelateToManyForCreateInput
+  defaultVariantOptions: VariantOptionRelateToManyForCreateInput
   colorPalette: ColorRelateToManyForCreateInput
-  defaultVariantOptions: ProductOptionValueRelateToManyForCreateInput
   categories: CategoryRelateToManyForCreateInput
   tags: TagRelateToManyForCreateInput
   variants: ProductVariantRelateToManyForCreateInput
@@ -1124,14 +1092,14 @@ input ProductOptionRelateToManyForCreateInput {
   connect: [ProductOptionWhereUniqueInput!]
 }
 
+input VariantOptionRelateToManyForCreateInput {
+  create: [VariantOptionCreateInput!]
+  connect: [VariantOptionWhereUniqueInput!]
+}
+
 input ColorRelateToManyForCreateInput {
   create: [ColorCreateInput!]
   connect: [ColorWhereUniqueInput!]
-}
-
-input ProductOptionValueRelateToManyForCreateInput {
-  create: [ProductOptionValueCreateInput!]
-  connect: [ProductOptionValueWhereUniqueInput!]
 }
 
 input TagRelateToManyForCreateInput {
@@ -1192,6 +1160,12 @@ input ProductOptionWhereInput {
   optionValues: ProductOptionValueManyRelationFilter
 }
 
+input ProductOptionValueManyRelationFilter {
+  every: ProductOptionValueWhereInput
+  some: ProductOptionValueWhereInput
+  none: ProductOptionValueWhereInput
+}
+
 input ProductOptionOrderByInput {
   id: OrderDirection
 }
@@ -1214,6 +1188,13 @@ input ProductOptionNameRelateToOneForUpdateInput {
   disconnect: Boolean
 }
 
+input ProductOptionValueRelateToManyForUpdateInput {
+  disconnect: [ProductOptionValueWhereUniqueInput!]
+  set: [ProductOptionValueWhereUniqueInput!]
+  create: [ProductOptionValueCreateInput!]
+  connect: [ProductOptionValueWhereUniqueInput!]
+}
+
 input ProductOptionUpdateArgs {
   where: ProductOptionWhereUniqueInput!
   data: ProductOptionUpdateInput!
@@ -1233,6 +1214,11 @@ input ProductRelateToOneForCreateInput {
 input ProductOptionNameRelateToOneForCreateInput {
   create: ProductOptionNameCreateInput
   connect: ProductOptionNameWhereUniqueInput
+}
+
+input ProductOptionValueRelateToManyForCreateInput {
+  create: [ProductOptionValueCreateInput!]
+  connect: [ProductOptionValueWhereUniqueInput!]
 }
 
 type ProductOptionName {
@@ -1309,12 +1295,12 @@ type ProductVariant {
   id: ID!
   product: Product
   options(
-    where: ProductOptionValueWhereInput! = {}
-    orderBy: [ProductOptionValueOrderByInput!]! = []
+    where: VariantOptionWhereInput! = {}
+    orderBy: [VariantOptionOrderByInput!]! = []
     take: Int
     skip: Int! = 0
-  ): [ProductOptionValue!]
-  optionsCount(where: ProductOptionValueWhereInput! = {}): Int
+  ): [VariantOption!]
+  optionsCount(where: VariantOptionWhereInput! = {}): Int
   title: String
   status: String
   description: String
@@ -1344,14 +1330,14 @@ input ProductVariantWhereInput {
   NOT: [ProductVariantWhereInput!]
   id: IDFilter
   product: ProductWhereInput
-  options: ProductOptionValueManyRelationFilter
+  options: VariantOptionManyRelationFilter
   status: StringNullableFilter
   description: StringFilter
   regularPrice: IntFilter
   salePrice: IntNullableFilter
-  length: FloatNullableFilter
-  width: FloatNullableFilter
-  height: FloatNullableFilter
+  length: FloatFilter
+  width: FloatFilter
+  height: FloatFilter
   weight: FloatFilter
   packageLength: FloatFilter
   packageWidth: FloatFilter
@@ -1368,17 +1354,6 @@ input IntFilter {
   gt: Int
   gte: Int
   not: IntFilter
-}
-
-input FloatNullableFilter {
-  equals: Float
-  in: [Float!]
-  notIn: [Float!]
-  lt: Float
-  lte: Float
-  gt: Float
-  gte: Float
-  not: FloatNullableFilter
 }
 
 input FloatFilter {
@@ -1409,7 +1384,7 @@ input ProductVariantOrderByInput {
 
 input ProductVariantUpdateInput {
   product: ProductRelateToOneForUpdateInput
-  options: ProductOptionValueRelateToManyForUpdateInput
+  options: VariantOptionRelateToManyForUpdateInput
   status: String
   description: String
   image: Upload
@@ -1438,7 +1413,7 @@ input ProductVariantUpdateArgs {
 
 input ProductVariantCreateInput {
   product: ProductRelateToOneForCreateInput
-  options: ProductOptionValueRelateToManyForCreateInput
+  options: VariantOptionRelateToManyForCreateInput
   status: String
   description: String
   image: Upload
@@ -1459,42 +1434,69 @@ input StockRelateToOneForCreateInput {
   connect: StockWhereUniqueInput
 }
 
-type ProductImage {
+type VariantOption {
   id: ID!
-  image: CloudinaryImage_File
-  altText: String
+  option: String
+  variant: ProductVariant
+  optionName: ProductOptionName
+  optionValue: ProductOptionValue
 }
 
-input ProductImageWhereUniqueInput {
+input VariantOptionWhereUniqueInput {
   id: ID
 }
 
-input ProductImageWhereInput {
-  AND: [ProductImageWhereInput!]
-  OR: [ProductImageWhereInput!]
-  NOT: [ProductImageWhereInput!]
+input VariantOptionWhereInput {
+  AND: [VariantOptionWhereInput!]
+  OR: [VariantOptionWhereInput!]
+  NOT: [VariantOptionWhereInput!]
   id: IDFilter
-  altText: StringFilter
+  variant: ProductVariantWhereInput
+  optionName: ProductOptionNameWhereInput
+  optionValue: ProductOptionValueWhereInput
 }
 
-input ProductImageOrderByInput {
+input VariantOptionOrderByInput {
   id: OrderDirection
-  altText: OrderDirection
 }
 
-input ProductImageUpdateInput {
-  image: Upload
-  altText: String
+input VariantOptionUpdateInput {
+  variant: ProductVariantRelateToOneForUpdateInput
+  optionName: ProductOptionNameRelateToOneForUpdateInput
+  optionValue: ProductOptionValueRelateToOneForUpdateInput
 }
 
-input ProductImageUpdateArgs {
-  where: ProductImageWhereUniqueInput!
-  data: ProductImageUpdateInput!
+input ProductVariantRelateToOneForUpdateInput {
+  create: ProductVariantCreateInput
+  connect: ProductVariantWhereUniqueInput
+  disconnect: Boolean
 }
 
-input ProductImageCreateInput {
-  image: Upload
-  altText: String
+input ProductOptionValueRelateToOneForUpdateInput {
+  create: ProductOptionValueCreateInput
+  connect: ProductOptionValueWhereUniqueInput
+  disconnect: Boolean
+}
+
+input VariantOptionUpdateArgs {
+  where: VariantOptionWhereUniqueInput!
+  data: VariantOptionUpdateInput!
+}
+
+input VariantOptionCreateInput {
+  variant: ProductVariantRelateToOneForCreateInput
+  optionName: ProductOptionNameRelateToOneForCreateInput
+  optionValue: ProductOptionValueRelateToOneForCreateInput
+}
+
+input ProductVariantRelateToOneForCreateInput {
+  create: ProductVariantCreateInput
+  connect: ProductVariantWhereUniqueInput
+}
+
+input ProductOptionValueRelateToOneForCreateInput {
+  create: ProductOptionValueCreateInput
+  connect: ProductOptionValueWhereUniqueInput
 }
 
 type Accessory {
@@ -1646,12 +1648,6 @@ input StockUpdateInput {
   subscribedCustomers: CustomerRelateToManyForUpdateInput
 }
 
-input ProductVariantRelateToOneForUpdateInput {
-  create: ProductVariantCreateInput
-  connect: ProductVariantWhereUniqueInput
-  disconnect: Boolean
-}
-
 input InboundStockRelateToManyForUpdateInput {
   disconnect: [InboundStockWhereUniqueInput!]
   set: [InboundStockWhereUniqueInput!]
@@ -1695,11 +1691,6 @@ input StockCreateInput {
   inventoryLocation: String
   vendor: VendorRelateToOneForCreateInput
   subscribedCustomers: CustomerRelateToManyForCreateInput
-}
-
-input ProductVariantRelateToOneForCreateInput {
-  create: ProductVariantCreateInput
-  connect: ProductVariantWhereUniqueInput
 }
 
 input InboundStockRelateToManyForCreateInput {
@@ -2402,89 +2393,11 @@ input OrderRelateToManyForCreateInput {
   connect: [OrderWhereUniqueInput!]
 }
 
-type Discount {
+type Sale {
   id: ID!
-  couponCode: String
+  saleCode: String
   startDate: DateTime
   endDate: DateTime
-  discountCondition: DiscountCondition
-  discountAction: DiscountAction
-  offerText: String
-}
-
-input DiscountWhereUniqueInput {
-  id: ID
-}
-
-input DiscountWhereInput {
-  AND: [DiscountWhereInput!]
-  OR: [DiscountWhereInput!]
-  NOT: [DiscountWhereInput!]
-  id: IDFilter
-  couponCode: StringFilter
-  startDate: DateTimeFilter
-  endDate: DateTimeFilter
-  discountCondition: DiscountConditionWhereInput
-  discountAction: DiscountActionWhereInput
-  offerText: StringFilter
-}
-
-input DiscountOrderByInput {
-  id: OrderDirection
-  couponCode: OrderDirection
-  startDate: OrderDirection
-  endDate: OrderDirection
-  offerText: OrderDirection
-}
-
-input DiscountUpdateInput {
-  couponCode: String
-  startDate: DateTime
-  endDate: DateTime
-  discountCondition: DiscountConditionRelateToOneForUpdateInput
-  discountAction: DiscountActionRelateToOneForUpdateInput
-  offerText: String
-}
-
-input DiscountConditionRelateToOneForUpdateInput {
-  create: DiscountConditionCreateInput
-  connect: DiscountConditionWhereUniqueInput
-  disconnect: Boolean
-}
-
-input DiscountActionRelateToOneForUpdateInput {
-  create: DiscountActionCreateInput
-  connect: DiscountActionWhereUniqueInput
-  disconnect: Boolean
-}
-
-input DiscountUpdateArgs {
-  where: DiscountWhereUniqueInput!
-  data: DiscountUpdateInput!
-}
-
-input DiscountCreateInput {
-  couponCode: String
-  startDate: DateTime
-  endDate: DateTime
-  discountCondition: DiscountConditionRelateToOneForCreateInput
-  discountAction: DiscountActionRelateToOneForCreateInput
-  offerText: String
-}
-
-input DiscountConditionRelateToOneForCreateInput {
-  create: DiscountConditionCreateInput
-  connect: DiscountConditionWhereUniqueInput
-}
-
-input DiscountActionRelateToOneForCreateInput {
-  create: DiscountActionCreateInput
-  connect: DiscountActionWhereUniqueInput
-}
-
-type DiscountCondition {
-  id: ID!
-  minimumItemsPerOrder: Int
   productsIsIn(
     where: ProductWhereInput! = {}
     orderBy: [ProductOrderByInput!]! = []
@@ -2492,47 +2405,62 @@ type DiscountCondition {
     skip: Int! = 0
   ): [Product!]
   productsIsInCount(where: ProductWhereInput! = {}): Int
+  discountPercentage: Float
 }
 
-input DiscountConditionWhereUniqueInput {
+input SaleWhereUniqueInput {
   id: ID
 }
 
-input DiscountConditionWhereInput {
-  AND: [DiscountConditionWhereInput!]
-  OR: [DiscountConditionWhereInput!]
-  NOT: [DiscountConditionWhereInput!]
+input SaleWhereInput {
+  AND: [SaleWhereInput!]
+  OR: [SaleWhereInput!]
+  NOT: [SaleWhereInput!]
   id: IDFilter
-  minimumItemsPerOrder: IntFilter
+  saleCode: StringFilter
+  startDate: DateTimeFilter
+  endDate: DateTimeFilter
   productsIsIn: ProductManyRelationFilter
+  discountPercentage: FloatFilter
 }
 
-input DiscountConditionOrderByInput {
+input SaleOrderByInput {
   id: OrderDirection
-  minimumItemsPerOrder: OrderDirection
+  saleCode: OrderDirection
+  startDate: OrderDirection
+  endDate: OrderDirection
+  discountPercentage: OrderDirection
 }
 
-input DiscountConditionUpdateInput {
-  minimumItemsPerOrder: Int
+input SaleUpdateInput {
+  saleCode: String
+  startDate: DateTime
+  endDate: DateTime
   productsIsIn: ProductRelateToManyForUpdateInput
+  discountPercentage: Float
 }
 
-input DiscountConditionUpdateArgs {
-  where: DiscountConditionWhereUniqueInput!
-  data: DiscountConditionUpdateInput!
+input SaleUpdateArgs {
+  where: SaleWhereUniqueInput!
+  data: SaleUpdateInput!
 }
 
-input DiscountConditionCreateInput {
-  minimumItemsPerOrder: Int
+input SaleCreateInput {
+  saleCode: String
+  startDate: DateTime
+  endDate: DateTime
   productsIsIn: ProductRelateToManyForCreateInput
+  discountPercentage: Float
 }
 
-type DiscountAction {
+type Offer {
   id: ID!
-  discountAmount: Int
-  discountPercentage: Int
+  couponCode: String
+  startDate: DateTime
+  endDate: DateTime
+  minimumItemsPerOrder: Int
+  discountAmount: Float
   freeShipping: String
-  isSale: String
   freebieProducts(
     where: ProductWhereInput! = {}
     orderBy: [ProductOrderByInput!]! = []
@@ -2540,51 +2468,79 @@ type DiscountAction {
     skip: Int! = 0
   ): [Product!]
   freebieProductsCount(where: ProductWhereInput! = {}): Int
+  offerText: String
+  offerImage: Image
 }
 
-input DiscountActionWhereUniqueInput {
+input OfferWhereUniqueInput {
   id: ID
 }
 
-input DiscountActionWhereInput {
-  AND: [DiscountActionWhereInput!]
-  OR: [DiscountActionWhereInput!]
-  NOT: [DiscountActionWhereInput!]
+input OfferWhereInput {
+  AND: [OfferWhereInput!]
+  OR: [OfferWhereInput!]
+  NOT: [OfferWhereInput!]
   id: IDFilter
-  discountAmount: IntNullableFilter
-  discountPercentage: IntNullableFilter
+  couponCode: StringFilter
+  startDate: DateTimeFilter
+  endDate: DateTimeFilter
+  minimumItemsPerOrder: IntFilter
+  discountAmount: FloatFilter
   freeShipping: StringNullableFilter
-  isSale: StringNullableFilter
   freebieProducts: ProductManyRelationFilter
+  offerText: StringFilter
+  offerImage: ImageWhereInput
 }
 
-input DiscountActionOrderByInput {
+input OfferOrderByInput {
   id: OrderDirection
+  couponCode: OrderDirection
+  startDate: OrderDirection
+  endDate: OrderDirection
+  minimumItemsPerOrder: OrderDirection
   discountAmount: OrderDirection
-  discountPercentage: OrderDirection
   freeShipping: OrderDirection
-  isSale: OrderDirection
+  offerText: OrderDirection
 }
 
-input DiscountActionUpdateInput {
-  discountAmount: Int
-  discountPercentage: Int
+input OfferUpdateInput {
+  couponCode: String
+  startDate: DateTime
+  endDate: DateTime
+  minimumItemsPerOrder: Int
+  discountAmount: Float
   freeShipping: String
-  isSale: String
   freebieProducts: ProductRelateToManyForUpdateInput
+  offerText: String
+  offerImage: ImageRelateToOneForUpdateInput
 }
 
-input DiscountActionUpdateArgs {
-  where: DiscountActionWhereUniqueInput!
-  data: DiscountActionUpdateInput!
+input ImageRelateToOneForUpdateInput {
+  create: ImageCreateInput
+  connect: ImageWhereUniqueInput
+  disconnect: Boolean
 }
 
-input DiscountActionCreateInput {
-  discountAmount: Int
-  discountPercentage: Int
+input OfferUpdateArgs {
+  where: OfferWhereUniqueInput!
+  data: OfferUpdateInput!
+}
+
+input OfferCreateInput {
+  couponCode: String
+  startDate: DateTime
+  endDate: DateTime
+  minimumItemsPerOrder: Int
+  discountAmount: Float
   freeShipping: String
-  isSale: String
   freebieProducts: ProductRelateToManyForCreateInput
+  offerText: String
+  offerImage: ImageRelateToOneForCreateInput
+}
+
+input ImageRelateToOneForCreateInput {
+  create: ImageCreateInput
+  connect: ImageWhereUniqueInput
 }
 
 type Role {
@@ -3077,14 +3033,14 @@ type Query {
   ): [ProductVariant!]
   productVariant(where: ProductVariantWhereUniqueInput!): ProductVariant
   productVariantsCount(where: ProductVariantWhereInput! = {}): Int
-  productImages(
-    where: ProductImageWhereInput! = {}
-    orderBy: [ProductImageOrderByInput!]! = []
+  variantOptions(
+    where: VariantOptionWhereInput! = {}
+    orderBy: [VariantOptionOrderByInput!]! = []
     take: Int
     skip: Int! = 0
-  ): [ProductImage!]
-  productImage(where: ProductImageWhereUniqueInput!): ProductImage
-  productImagesCount(where: ProductImageWhereInput! = {}): Int
+  ): [VariantOption!]
+  variantOption(where: VariantOptionWhereUniqueInput!): VariantOption
+  variantOptionsCount(where: VariantOptionWhereInput! = {}): Int
   accessories(
     where: AccessoryWhereInput! = {}
     orderBy: [AccessoryOrderByInput!]! = []
@@ -3165,32 +3121,22 @@ type Query {
   ): [Customer!]
   customer(where: CustomerWhereUniqueInput!): Customer
   customersCount(where: CustomerWhereInput! = {}): Int
-  discounts(
-    where: DiscountWhereInput! = {}
-    orderBy: [DiscountOrderByInput!]! = []
+  sales(
+    where: SaleWhereInput! = {}
+    orderBy: [SaleOrderByInput!]! = []
     take: Int
     skip: Int! = 0
-  ): [Discount!]
-  discount(where: DiscountWhereUniqueInput!): Discount
-  discountsCount(where: DiscountWhereInput! = {}): Int
-  discountConditions(
-    where: DiscountConditionWhereInput! = {}
-    orderBy: [DiscountConditionOrderByInput!]! = []
+  ): [Sale!]
+  sale(where: SaleWhereUniqueInput!): Sale
+  salesCount(where: SaleWhereInput! = {}): Int
+  offers(
+    where: OfferWhereInput! = {}
+    orderBy: [OfferOrderByInput!]! = []
     take: Int
     skip: Int! = 0
-  ): [DiscountCondition!]
-  discountCondition(
-    where: DiscountConditionWhereUniqueInput!
-  ): DiscountCondition
-  discountConditionsCount(where: DiscountConditionWhereInput! = {}): Int
-  discountActions(
-    where: DiscountActionWhereInput! = {}
-    orderBy: [DiscountActionOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [DiscountAction!]
-  discountAction(where: DiscountActionWhereUniqueInput!): DiscountAction
-  discountActionsCount(where: DiscountActionWhereInput! = {}): Int
+  ): [Offer!]
+  offer(where: OfferWhereUniqueInput!): Offer
+  offersCount(where: OfferWhereInput! = {}): Int
   roles(
     where: RoleWhereInput! = {}
     orderBy: [RoleOrderByInput!]! = []
@@ -3308,6 +3254,11 @@ enum KeystoneAdminUIFieldMetaItemViewFieldMode {
   edit
   read
   hidden
+}
+
+enum QueryMode {
+  default
+  insensitive
 }
 
 type KeystoneAdminUISort {

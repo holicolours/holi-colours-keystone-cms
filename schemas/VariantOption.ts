@@ -1,8 +1,7 @@
 import { relationship, text, virtual } from '@keystone-6/core/fields';
 import { graphql, list } from '@keystone-6/core';
-import { rules, isSignedIn, permissions } from '../access';
 
-export const ProductOption = list({
+export const VariantOption = list({
   ui: {
     labelField: 'option',
     isHidden: true,
@@ -14,18 +13,18 @@ export const ProductOption = list({
         resolve(item, args, context) {
           let optionlabel = '';
           let option = item as any;
-          optionlabel = context.query.ProductOption.findOne({
+          optionlabel = context.query.VariantOption.findOne({
             where: { id: option.id },
-            query: 'id optionName { optionName } optionValues { optionValue }'
+            query: 'id optionName { optionName } optionValue { optionValue }'
           }).then((value) => {
-            return value.optionName.optionName + ' (' + value.optionValues.map((v: { optionValue: any; }) => v.optionValue).join(", ") + ')';
+            return value.optionName.optionName + ' (' + value.optionValue.optionValue + ')';
           }) as any;
           return optionlabel;
         },
       }),
     }),
-    product: relationship({
-      ref: 'Product.options',
+    variant: relationship({
+      ref: 'ProductVariant.options',
       ui: {
         hideCreate: true,
         itemView: { fieldMode: 'read' }
@@ -33,10 +32,15 @@ export const ProductOption = list({
     }),
     optionName: relationship({
       ref: 'ProductOptionName',
+      ui: {
+        hideCreate: true,
+      }
     }),
-    optionValues: relationship({
+    optionValue: relationship({
       ref: 'ProductOptionValue',
-      many: true
+      ui: {
+        hideCreate: true,
+      }
     }),
   },
 });

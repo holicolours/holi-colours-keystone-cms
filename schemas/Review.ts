@@ -8,7 +8,8 @@ export const Review = list({
       initialSort: {
         field: 'createdOn',
         direction: 'DESC'
-      }
+      },
+      pageSize: 10,
     },
   },
   fields: {
