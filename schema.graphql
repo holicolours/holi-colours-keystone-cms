@@ -508,13 +508,7 @@ type Product {
     skip: Int! = 0
   ): [ProductOption!]
   optionsCount(where: ProductOptionWhereInput! = {}): Int
-  defaultVariantOptions(
-    where: VariantOptionWhereInput! = {}
-    orderBy: [VariantOptionOrderByInput!]! = []
-    take: Int
-    skip: Int! = 0
-  ): [VariantOption!]
-  defaultVariantOptionsCount(where: VariantOptionWhereInput! = {}): Int
+  defaultVariant: String
   colorPalette(
     where: ColorWhereInput! = {}
     orderBy: [ColorOrderByInput!]! = []
@@ -585,6 +579,7 @@ input ProductWhereUniqueInput {
   id: ID
   name: String
   slug: String
+  sku: Int
 }
 
 input ProductWhereInput {
@@ -595,10 +590,9 @@ input ProductWhereInput {
   name: StringFilter
   slug: StringFilter
   status: StringNullableFilter
-  sku: IntNullableFilter
+  sku: IntFilter
   description: StringFilter
   options: ProductOptionManyRelationFilter
-  defaultVariantOptions: VariantOptionManyRelationFilter
   colorPalette: ColorManyRelationFilter
   categories: CategoryManyRelationFilter
   tags: TagManyRelationFilter
@@ -640,7 +634,7 @@ input NestedStringNullableFilter {
   not: NestedStringNullableFilter
 }
 
-input IntNullableFilter {
+input IntFilter {
   equals: Int
   in: [Int!]
   notIn: [Int!]
@@ -648,19 +642,13 @@ input IntNullableFilter {
   lte: Int
   gt: Int
   gte: Int
-  not: IntNullableFilter
+  not: IntFilter
 }
 
 input ProductOptionManyRelationFilter {
   every: ProductOptionWhereInput
   some: ProductOptionWhereInput
   none: ProductOptionWhereInput
-}
-
-input VariantOptionManyRelationFilter {
-  every: VariantOptionWhereInput
-  some: VariantOptionWhereInput
-  none: VariantOptionWhereInput
 }
 
 input ColorManyRelationFilter {
@@ -724,7 +712,6 @@ input ProductUpdateInput {
   description: String
   additionalInformation: JSON
   options: ProductOptionRelateToManyForUpdateInput
-  defaultVariantOptions: VariantOptionRelateToManyForUpdateInput
   colorPalette: ColorRelateToManyForUpdateInput
   categories: CategoryRelateToManyForUpdateInput
   tags: TagRelateToManyForUpdateInput
@@ -742,13 +729,6 @@ input ProductOptionRelateToManyForUpdateInput {
   set: [ProductOptionWhereUniqueInput!]
   create: [ProductOptionCreateInput!]
   connect: [ProductOptionWhereUniqueInput!]
-}
-
-input VariantOptionRelateToManyForUpdateInput {
-  disconnect: [VariantOptionWhereUniqueInput!]
-  set: [VariantOptionWhereUniqueInput!]
-  create: [VariantOptionCreateInput!]
-  connect: [VariantOptionWhereUniqueInput!]
 }
 
 input ColorRelateToManyForUpdateInput {
@@ -813,7 +793,6 @@ input ProductCreateInput {
   description: String
   additionalInformation: JSON
   options: ProductOptionRelateToManyForCreateInput
-  defaultVariantOptions: VariantOptionRelateToManyForCreateInput
   colorPalette: ColorRelateToManyForCreateInput
   categories: CategoryRelateToManyForCreateInput
   tags: TagRelateToManyForCreateInput
@@ -829,11 +808,6 @@ input ProductCreateInput {
 input ProductOptionRelateToManyForCreateInput {
   create: [ProductOptionCreateInput!]
   connect: [ProductOptionWhereUniqueInput!]
-}
-
-input VariantOptionRelateToManyForCreateInput {
-  create: [VariantOptionCreateInput!]
-  connect: [VariantOptionWhereUniqueInput!]
 }
 
 input ColorRelateToManyForCreateInput {
@@ -1042,6 +1016,7 @@ type ProductVariant {
   optionsCount(where: VariantOptionWhereInput! = {}): Int
   title: String
   status: String
+  defaultVariant: Boolean
   description: String
   image: CloudinaryImage_File
   regularPrice: Int
@@ -1071,6 +1046,7 @@ input ProductVariantWhereInput {
   product: ProductWhereInput
   options: VariantOptionManyRelationFilter
   status: StringNullableFilter
+  defaultVariant: BooleanFilter
   description: StringFilter
   regularPrice: IntFilter
   salePrice: IntNullableFilter
@@ -1084,7 +1060,13 @@ input ProductVariantWhereInput {
   sku: StockWhereInput
 }
 
-input IntFilter {
+input VariantOptionManyRelationFilter {
+  every: VariantOptionWhereInput
+  some: VariantOptionWhereInput
+  none: VariantOptionWhereInput
+}
+
+input IntNullableFilter {
   equals: Int
   in: [Int!]
   notIn: [Int!]
@@ -1092,7 +1074,7 @@ input IntFilter {
   lte: Int
   gt: Int
   gte: Int
-  not: IntFilter
+  not: IntNullableFilter
 }
 
 input FloatFilter {
@@ -1109,6 +1091,7 @@ input FloatFilter {
 input ProductVariantOrderByInput {
   id: OrderDirection
   status: OrderDirection
+  defaultVariant: OrderDirection
   description: OrderDirection
   regularPrice: OrderDirection
   salePrice: OrderDirection
@@ -1125,6 +1108,7 @@ input ProductVariantUpdateInput {
   product: ProductRelateToOneForUpdateInput
   options: VariantOptionRelateToManyForUpdateInput
   status: String
+  defaultVariant: Boolean
   description: String
   image: Upload
   regularPrice: Int
@@ -1137,6 +1121,13 @@ input ProductVariantUpdateInput {
   packageWidth: Float
   packageHeight: Float
   sku: StockRelateToOneForUpdateInput
+}
+
+input VariantOptionRelateToManyForUpdateInput {
+  disconnect: [VariantOptionWhereUniqueInput!]
+  set: [VariantOptionWhereUniqueInput!]
+  create: [VariantOptionCreateInput!]
+  connect: [VariantOptionWhereUniqueInput!]
 }
 
 input StockRelateToOneForUpdateInput {
@@ -1154,6 +1145,7 @@ input ProductVariantCreateInput {
   product: ProductRelateToOneForCreateInput
   options: VariantOptionRelateToManyForCreateInput
   status: String
+  defaultVariant: Boolean
   description: String
   image: Upload
   regularPrice: Int
@@ -1166,6 +1158,11 @@ input ProductVariantCreateInput {
   packageWidth: Float
   packageHeight: Float
   sku: StockRelateToOneForCreateInput
+}
+
+input VariantOptionRelateToManyForCreateInput {
+  create: [VariantOptionCreateInput!]
+  connect: [VariantOptionWhereUniqueInput!]
 }
 
 input StockRelateToOneForCreateInput {
@@ -1679,11 +1676,12 @@ type Order {
     skip: Int! = 0
   ): [OrderNote!]
   notesCount(where: OrderNoteWhereInput! = {}): Int
-  cartJSON: JSON
+  orderJSON: JSON
 }
 
 input OrderWhereUniqueInput {
   id: ID
+  orderNumber: String
 }
 
 input OrderWhereInput {
@@ -1773,7 +1771,7 @@ input OrderUpdateInput {
   shipToCountry: String
   shipToPostalCode: String
   notes: OrderNoteRelateToManyForUpdateInput
-  cartJSON: JSON
+  orderJSON: JSON
 }
 
 input OrderItemRelateToManyForUpdateInput {
@@ -1824,7 +1822,7 @@ input OrderCreateInput {
   shipToCountry: String
   shipToPostalCode: String
   notes: OrderNoteRelateToManyForCreateInput
-  cartJSON: JSON
+  orderJSON: JSON
 }
 
 input OrderItemRelateToManyForCreateInput {
@@ -1990,6 +1988,7 @@ type Customer {
 
 input CustomerWhereUniqueInput {
   id: ID
+  email: String
 }
 
 input CustomerWhereInput {

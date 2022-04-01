@@ -1,4 +1,4 @@
-import { integer, select, text, relationship, float, virtual } from '@keystone-6/core/fields';
+import { integer, select, text, relationship, float, virtual, checkbox } from '@keystone-6/core/fields';
 import { cloudinaryImage } from '@keystone-6/cloudinary';
 import { graphql, list } from '@keystone-6/core';
 var firebase = require('firebase-admin');
@@ -23,7 +23,6 @@ function getPrice(variant: any) {
 export const ProductVariant = list({
   ui: {
     labelField: 'title',
-    isHidden: true,
     listView: {
       initialColumns: ['title', 'status', 'sku', 'image', 'price', 'status', 'stock'],
       pageSize: 10,
@@ -77,6 +76,9 @@ export const ProductVariant = list({
         displayMode: 'segmented-control',
         createView: { fieldMode: 'hidden' },
       },
+    }),
+    defaultVariant: checkbox({
+      defaultValue: false,
     }),
     description: text({
       ui: {
@@ -162,9 +164,43 @@ export const ProductVariant = list({
     },
     validateInput: async ({
       resolvedData,
+      item,
       addValidationError,
     }) => {
-      // addValidationError('Error!');
+      let variant = item as any;
+      const { defaultVariant } = resolvedData;
+      if (defaultVariant && !variant.image) {
+        addValidationError('Default variant should have an image uploaded!');
+      }
     },
+    afterOperation: async ({ operation, item, originalItem, context }) => {
+      let variantInput = item as any;
+      let originalVariant = originalItem as any;
+
+      if (operation == "create" || operation == "update") {
+        if (variantInput.defaultVariant && variantInput.defaultVariant != originalVariant.defaultVariant) {
+          let v = await context.query.ProductVariant.findOne({
+            where: { id: variantInput.id },
+            query: ' product { variants { id defaultVariant } } '
+          }) as any;
+          let updateData: { where: { id: any; }; data: { defaultVariant: boolean; }; }[] = [];
+          v.product.variants.forEach((v: any) => {
+            if (v.defaultVariant && v.id != variantInput.id) {
+              updateData.push({
+                where: { id: v.id },
+                data: {
+                  defaultVariant: false
+                }
+              });
+            }
+          });
+          if (updateData.length > 0) {
+            await context.db.ProductVariant.updateMany({
+              data: updateData
+            });
+          }
+        }
+      }
+    }
   },
 });

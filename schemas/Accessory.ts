@@ -1,13 +1,6 @@
 import { select, text, relationship, integer } from '@keystone-6/core/fields';
 import { list } from '@keystone-6/core';
 
-export const cloudinary = {
-  cloudName: process.env.CLOUDINARY_CLOUD_NAME || 'fake',
-  apiKey: process.env.CLOUDINARY_KEY || 'fake',
-  apiSecret: process.env.CLOUDINARY_SECRET || 'fake',
-  folder: 'products',
-};
-
 export const Accessory = list({
   ui: {
     listView: {

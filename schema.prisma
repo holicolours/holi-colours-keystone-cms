@@ -71,11 +71,10 @@ model Product {
   name                       String           @unique @default("")
   slug                       String           @unique @default("")
   status                     String?          @default("DRAFT")
-  sku                        Int?
+  sku                        Int              @unique
   description                String           @default("")
   additionalInformation      Json             @default("[{\"type\":\"paragraph\",\"children\":[{\"text\":\"\"}]}]")
   options                    ProductOption[]  @relation("ProductOption_product")
-  defaultVariantOptions      VariantOption[]  @relation("Product_defaultVariantOptions")
   colorPalette               Color[]          @relation("Product_colorPalette")
   categories                 Category[]       @relation("Category_products")
   tags                       Tag[]            @relation("Product_tags")
@@ -118,37 +117,37 @@ model ProductOptionValue {
 }
 
 model ProductVariant {
-  id            String          @id @default(cuid())
-  product       Product?        @relation("ProductVariant_product", fields: [productId], references: [id])
-  productId     String?         @map("product")
-  options       VariantOption[] @relation("VariantOption_variant")
-  status        String?         @default("DRAFT")
-  description   String          @default("")
-  image         Json?
-  regularPrice  Int
-  salePrice     Int?
-  length        Float           @default(0)
-  width         Float           @default(0)
-  height        Float           @default(0)
-  weight        Float
-  packageLength Float           @default(0)
-  packageWidth  Float           @default(0)
-  packageHeight Float           @default(0)
-  sku           Stock?          @relation("ProductVariant_sku", fields: [skuId], references: [id])
-  skuId         String?         @unique @map("sku")
+  id             String          @id @default(cuid())
+  product        Product?        @relation("ProductVariant_product", fields: [productId], references: [id])
+  productId      String?         @map("product")
+  options        VariantOption[] @relation("VariantOption_variant")
+  status         String?         @default("DRAFT")
+  defaultVariant Boolean         @default(false)
+  description    String          @default("")
+  image          Json?
+  regularPrice   Int
+  salePrice      Int?
+  length         Float           @default(0)
+  width          Float           @default(0)
+  height         Float           @default(0)
+  weight         Float
+  packageLength  Float           @default(0)
+  packageWidth   Float           @default(0)
+  packageHeight  Float           @default(0)
+  sku            Stock?          @relation("ProductVariant_sku", fields: [skuId], references: [id])
+  skuId          String?         @unique @map("sku")
 
   @@index([productId])
 }
 
 model VariantOption {
-  id                                 String              @id @default(cuid())
-  variant                            ProductVariant?     @relation("VariantOption_variant", fields: [variantId], references: [id])
-  variantId                          String?             @map("variant")
-  optionName                         ProductOptionName?  @relation("VariantOption_optionName", fields: [optionNameId], references: [id])
-  optionNameId                       String?             @map("optionName")
-  optionValue                        ProductOptionValue? @relation("VariantOption_optionValue", fields: [optionValueId], references: [id])
-  optionValueId                      String?             @map("optionValue")
-  from_Product_defaultVariantOptions Product[]           @relation("Product_defaultVariantOptions")
+  id            String              @id @default(cuid())
+  variant       ProductVariant?     @relation("VariantOption_variant", fields: [variantId], references: [id])
+  variantId     String?             @map("variant")
+  optionName    ProductOptionName?  @relation("VariantOption_optionName", fields: [optionNameId], references: [id])
+  optionNameId  String?             @map("optionName")
+  optionValue   ProductOptionValue? @relation("VariantOption_optionValue", fields: [optionValueId], references: [id])
+  optionValueId String?             @map("optionValue")
 
   @@index([variantId])
   @@index([optionNameId])
@@ -215,7 +214,7 @@ model Vendor {
 
 model Order {
   id                           String          @id @default(cuid())
-  orderNumber                  String          @default("")
+  orderNumber                  String          @unique @default("")
   orderDate                    DateTime?
   status                       String?         @default("PP")
   items                        OrderItem[]     @relation("OrderItem_order")
@@ -238,7 +237,7 @@ model Order {
   shipToCountry                String          @default("")
   shipToPostalCode             String          @default("")
   notes                        OrderNote[]     @relation("OrderNote_order")
-  cartJSON                     Json?
+  orderJSON                    Json?
   from_OutboundStock_order     OutboundStock[] @relation("OutboundStock_order")
 
   @@index([customerId])
@@ -275,7 +274,7 @@ model Customer {
   uid                  String   @default("")
   firstName            String   @default("")
   lastName             String   @default("")
-  email                String   @default("")
+  email                String   @unique @default("")
   status               String?  @default("G")
   phoneNumber          String   @default("")
   alternatePhoneNumber String   @default("")

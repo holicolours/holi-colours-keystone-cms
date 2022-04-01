@@ -52,6 +52,9 @@ export const Product = list({
     }),
     sku: integer({
       label: 'SKU',
+      isIndexed: 'unique',
+      validation: { isRequired: true },
+      db: { isNullable: false },
       ui: {
         createView: { fieldMode: 'hidden' },
         itemView: { fieldMode: 'read' },
@@ -100,16 +103,22 @@ export const Product = list({
       },
       many: true
     }),
-    defaultVariantOptions: relationship({
-      ref: 'VariantOption',
-      many: true,
+    defaultVariant: virtual({
+      field: graphql.field({
+        type: graphql.String,
+        async resolve(item, args, context) {
+          let product = item as any;
+          let p = await context.query.Product.findOne({
+            where: { id: product.id },
+            query: 'variants(where: {defaultVariant: { equals: true}}) { title }'
+          }) as any;
+          return p && p.variants.length > 0 ? p.variants[0].title : '';
+        },
+      }),
       ui: {
-        createView: { fieldMode: 'hidden' },
-        displayMode: 'cards',
-        cardFields: ['option'],
-        inlineCreate: { fields: ['optionName', 'optionValue'] },
-        inlineEdit: { fields: ['optionName', 'optionValue'] },
-        inlineConnect: false,
+        itemView: {
+          fieldMode: 'hidden'
+        }
       }
     }),
     colorPalette: relationship({
@@ -139,8 +148,9 @@ export const Product = list({
       ui: {
         displayMode: 'cards',
         createView: { fieldMode: 'hidden' },
-        cardFields: ['title', 'status', 'image', 'price', 'stock', 'sku'],
-        inlineCreate: { fields: ['options', 'status', 'image', 'regularPrice', 'length', 'width', 'height', 'weight', 'packageLength', 'packageWidth', 'packageHeight'] },
+        cardFields: ['title', 'status', 'image', 'defaultVariant', 'price', 'stock', 'sku'],
+        inlineCreate: { fields: ['options', 'status', 'defaultVariant', 'image', 'regularPrice', 'length', 'width', 'height', 'weight', 'packageLength', 'packageWidth', 'packageHeight'] },
+        inlineEdit: { fields: ['options', 'status', 'defaultVariant', 'image', 'regularPrice', 'length', 'width', 'height', 'weight', 'packageLength', 'packageWidth', 'packageHeight'] },
         inlineConnect: false,
         linkToItem: true
       },
@@ -267,14 +277,24 @@ export const Product = list({
     },
     validateInput: async ({
       resolvedData,
+      item,
       addValidationError,
+      context
     }) => {
+      let product = item as any;
       const { name } = resolvedData;
       if (name) {
         let format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         if (format.test(name)) {
           addValidationError('Product name can\'t contain special charecters!');
         }
+      }
+      let p = await context.query.Product.findOne({
+        where: { id: product.id },
+        query: 'variants { defaultVariant }'
+      }) as any;
+      if (!p.variants.some((v: { defaultVariant: any; }) => v.defaultVariant)) {
+        addValidationError('A product should have a variant marked as default!');
       }
     },
     afterOperation: async ({ operation, item, context }) => {
@@ -286,11 +306,16 @@ export const Product = list({
           query: 'variantsCount variants { id sku { id } }'
         }) as any;
         if (Array.isArray(p.variants)) {
-          p.variants.forEach((v: { id: any, sku: any; }, index: any) => {
+          p.variants.forEach(async (v: { id: any, sku: any; }, index: any) => {
             if (!v.sku) {
+              let stockSequence = await firebase.database().ref().child("sequence").child("stocks")
+                .transaction(function (currentValue: any) {
+                  return (currentValue || 0) + 1;
+                });
+
               const stock = context.query.Stock.createOne({
                 data: {
-                  sku: product.sku + '-' + (index + 1),
+                  sku: product.sku + '-' + (stockSequence.snapshot.val()),
                   product: {
                     connect: {
                       id: product.id

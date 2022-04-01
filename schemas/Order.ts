@@ -1,5 +1,80 @@
 import { integer, text, relationship, virtual, select, timestamp, json } from '@keystone-6/core/fields';
 import { list, graphql } from '@keystone-6/core';
+const nodemailer = require("nodemailer");
+const email = require('email-templates');
+
+function createMailClient() {
+  return nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465, //587,
+    secure: true, // true for 465, false for other ports
+    auth: {
+      type: 'OAuth2',
+      user: "holicoloursit@gmail.com",
+      clientId: "423060301267-s6n8tr6hqo5j0cc8eglcdrvucth6tp50.apps.googleusercontent.com",
+      clientSecret: "06pMsRcPf8hx46E5hLTtpix5",
+      refreshToken: "1//0gMkZK7iqoeJGCgYIARAAGBASNwF-L9Ir4nttI8NZCe5EWcmH_ev1CfGiO1M85-Bru9LP54BM_lwa7idlW3oZDtwy1S4j7w2zRqw",
+    }
+  });
+}
+
+const statuses: any = {
+  'PP': {
+    name: 'Pending payment',
+    color: 'gray',
+    sendNotificationOnChange: false
+  },
+  'PF': {
+    name: 'Payment failed',
+    color: 'red',
+    sendNotificationOnChange: false
+  },
+  'OH': {
+    name: 'On hold',
+    color: 'yellow',
+    sendNotificationOnChange: true,
+    emailSubject: 'Your Holi Colours Jewellery order has been put on hold!',
+    emailHeader: 'Your order is on hold',
+    emailContent: 'Your order details are shown below for your reference.',
+    emailAdditionalContent: 'We look forward to fulfilling your order soon.'
+  },
+  'PR': {
+    name: 'Processing',
+    color: 'green',
+    sendNotificationOnChange: true,
+    emailSubject: 'Your Holi Colours Jewellery order has been received!',
+    emailHeader: 'Thank you for your order',
+    emailContent: 'Your order has been received and is now being processed. Your order details are shown below for your reference.',
+    emailAdditionalContent: 'Thanks for shopping with us.'
+  },
+  'DI': {
+    name: 'Dispatched',
+    color: 'blue',
+    sendNotificationOnChange: true,
+    emailSubject: 'Your Holi Colours Jewellery order has been dispatched!',
+    emailHeader: 'Your order has been dispatched',
+    emailContent: 'We have dispatched your order. Your order details are shown below for your reference.',
+    emailAdditionalContent: 'Thanks for shopping with us.'
+  },
+  'CO': {
+    name: 'Completed',
+    color: 'gray',
+    sendNotificationOnChange: true,
+    emailSubject: 'Your Holi Colours Jewellery order is now complete',
+    emailHeader: 'Thanks for shopping with us',
+    emailContent: 'We have finished processing your order. Your order details are shown below for your reference.',
+    emailAdditionalContent: 'Thanks for shopping with us.'
+  },
+  'CA': {
+    name: 'Cancelled',
+    color: 'gray',
+    sendNotificationOnChange: true,
+    emailSubject: 'Your Holi Colours Jewellery order has been cancelled',
+    emailHeader: 'Your order has been cancelled',
+    emailContent: 'Your order details are shown below for your reference.',
+    emailAdditionalContent: 'Thanks for reading.'
+  }
+}
 
 const uiHidden = 'hidden';
 const uiReadOnly = 'read';
@@ -20,6 +95,9 @@ export const Order = list({
   },
   fields: {
     orderNumber: text({
+      isIndexed: 'unique',
+      validation: { isRequired: true },
+      db: { isNullable: false },
       ui: { itemView: { fieldMode: uiReadOnly } }
     }),
     orderDate: timestamp({
@@ -224,10 +302,10 @@ export const Order = list({
         linkToItem: true
       }
     }),
-    cartJSON: json({
+    orderJSON: json({
       ui: {
         createView: { fieldMode: 'hidden' },
-        itemView: { fieldMode: 'hidden' },
+        // itemView: { fieldMode: 'hidden' },
         listView: { fieldMode: 'hidden' },
       }
     }),
@@ -246,5 +324,73 @@ export const Order = list({
       }
       return resolvedData;
     },
+    afterOperation: async ({ operation, item, originalItem, context }) => {
+      let orderInput = item as any;
+      let originalOrder = originalItem as any;
+      let order = orderInput.orderJSON;
+
+      console.log('Status: ' + originalOrder.status + ' => ' + orderInput.status);
+
+      if (order && originalOrder.status != orderInput.status && statuses[orderInput.status].sendNotificationOnChange) {
+        const mailClient = createMailClient();
+        const orderConfirmationEmail = new email();
+
+        let orderConfirmationHtmlMessage = await orderConfirmationEmail
+          .render('order/html', {
+            orderId: orderInput.orderNumber,
+            order: order,
+            creationDate: orderInput.orderDate,
+            header: statuses[orderInput.status].emailHeader,
+            content: statuses[orderInput.status].emailContent,
+            additionalContent: statuses[orderInput.status].emailAdditionalContent
+          })
+          .then((data: any) => {
+            return data;
+          })
+          .catch(console.error);
+
+        const orderConfirmationEmailResponse = await mailClient.sendMail({
+          from: '"Holi Colours Jewellery" <holicoloursit@gmail.com>',
+          to: `${order.customer.firstName} ${order.customer.lastName} <${order.customer.email}>`,
+          subject: statuses[orderInput.status].emailSubject,
+          html: orderConfirmationHtmlMessage
+        });
+
+        console.log(orderConfirmationEmailResponse);
+      }
+
+      // if (order && Array.isArray(order.cart.products) && order.cart.products.length > 0) {
+      //   let variants = await context.db.ProductVariant.findMany({
+      //     where: {
+      //       id: { in: order.cart.products.map((v: { vid: any; }) => v.vid) }
+      //     }
+      //   }) as any;
+      //   // console.log(variants);
+      //   let orderItems = await context.query.OrderItem.findMany({
+      //     where: { order: { orderNumber: { equals: orderInput.orderNumber } } },
+      //     query: ' id sku { variant { id } }'
+      //   }) as any;
+      //   console.log(JSON.stringify(orderItems));
+      //   let updateData: { where: { id: any; }; data: { image: any; }; }[] = [];
+      //   await orderItems.forEach((oI: any) => {
+      //     variants.some((v: any) => {
+      //       if (oI.sku && oI.sku.variant.id == v.id) {
+      //         updateData.push({
+      //           where: { id: oI.id },
+      //           data: {
+      //             image: v.image
+      //           }
+      //         });
+      //         return true;
+      //       }
+      //       return false;
+      //     });
+      //   });
+      //   console.log(updateData);
+      //   await context.db.OrderItem.updateMany({
+      //     data: updateData
+      //   });
+      // }
+    }
   },
 });

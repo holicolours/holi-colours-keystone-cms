@@ -7,7 +7,6 @@ const uiReadOnly = 'read';
 
 export const OrderItem = list({
   ui: {
-    isHidden: true,
     labelField: 'item',
     listView: {
       initialColumns: ['order', 'item', 'image', 'sku', 'quantity', 'unitPriceINR', 'totalINR'],
@@ -34,15 +33,15 @@ export const OrderItem = list({
         cloudName: process.env.CLOUDINARY_CLOUD_NAME || 'fake',
         apiKey: process.env.CLOUDINARY_KEY || 'fake',
         apiSecret: process.env.CLOUDINARY_SECRET || 'fake',
-        folder: 'Order Items',
+        folder: 'products',
       },
       ui: { itemView: { fieldMode: uiReadOnly } },
     }),
     sku: relationship({
       ref: 'Stock',
       many: false,
-      ui: { itemView: { fieldMode: uiReadOnly } },
       label: 'SKU',
+      ui: { itemView: { fieldMode: uiReadOnly } },
     }),
     quantity: integer({
       validation: { isRequired: true },

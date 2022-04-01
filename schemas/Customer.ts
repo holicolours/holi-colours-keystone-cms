@@ -28,6 +28,9 @@ export const Customer = list({
       ui: { itemView: { fieldMode: uiReadOnly } }
     }),
     email: text({
+      isIndexed: 'unique',
+      validation: { isRequired: true },
+      db: { isNullable: false },
       ui: { itemView: { fieldMode: uiReadOnly } }
     }),
     status: select({
