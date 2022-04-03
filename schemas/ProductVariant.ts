@@ -162,15 +162,23 @@ export const ProductVariant = list({
       return resolvedData;
     },
     validateInput: async ({
+      operation,
       resolvedData,
       item,
       addValidationError,
     }) => {
       let variant = item as any;
       const { defaultVariant, image } = resolvedData;
-      if (defaultVariant && !image) {
-        addValidationError('Default variant should have an image uploaded!');
+      if (operation == "create") {
+        if (defaultVariant && !image) {
+          addValidationError('Default variant should have an image uploaded!');
+        }
       }
+      // if (operation == "update") {
+      //   if (defaultVariant && !variant.image) {
+      //     addValidationError('Default variant should have an image uploaded!');
+      //   }
+      // }
     },
     afterOperation: async ({ operation, item, originalItem, context }) => {
       let variantInput = item as any;
@@ -193,7 +201,7 @@ export const ProductVariant = list({
                   }
                 });
               }
-            });  
+            });
           }
           if (updateData.length > 0) {
             await context.db.ProductVariant.updateMany({
