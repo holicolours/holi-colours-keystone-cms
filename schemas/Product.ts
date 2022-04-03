@@ -53,7 +53,6 @@ export const Product = list({
     sku: integer({
       label: 'SKU',
       isIndexed: 'unique',
-      validation: { isRequired: true },
       db: { isNullable: false },
       ui: {
         createView: { fieldMode: 'hidden' },
@@ -289,12 +288,14 @@ export const Product = list({
           addValidationError('Product name can\'t contain special charecters!');
         }
       }
-      let p = await context.query.Product.findOne({
-        where: { id: product.id },
-        query: 'variants { defaultVariant }'
-      }) as any;
-      if (!p.variants.some((v: { defaultVariant: any; }) => v.defaultVariant)) {
-        addValidationError('A product should have a variant marked as default!');
+      if (product && product.id) {
+        let p = await context.query.Product.findOne({
+          where: { id: product.id },
+          query: 'variants { defaultVariant }'
+        }) as any;
+        if (p.variants && p.variants.length > 0 && !p.variants.some((v: { defaultVariant: any; }) => v.defaultVariant)) {
+          addValidationError('A product should have a variant marked as default!');
+        }  
       }
     },
     afterOperation: async ({ operation, item, context }) => {

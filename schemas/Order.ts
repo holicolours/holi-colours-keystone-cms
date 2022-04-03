@@ -305,7 +305,7 @@ export const Order = list({
     orderJSON: json({
       ui: {
         createView: { fieldMode: 'hidden' },
-        // itemView: { fieldMode: 'hidden' },
+        itemView: { fieldMode: 'hidden' },
         listView: { fieldMode: 'hidden' },
       }
     }),

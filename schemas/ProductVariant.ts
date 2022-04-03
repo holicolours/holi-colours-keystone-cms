@@ -41,7 +41,6 @@ export const ProductVariant = list({
       ref: 'VariantOption.variant',
       many: true,
       ui: {
-        createView: { fieldMode: 'hidden' },
         displayMode: 'cards',
         cardFields: ['option'],
         inlineCreate: { fields: ['optionName', 'optionValue'] },
@@ -168,8 +167,8 @@ export const ProductVariant = list({
       addValidationError,
     }) => {
       let variant = item as any;
-      const { defaultVariant } = resolvedData;
-      if (defaultVariant && !variant.image) {
+      const { defaultVariant, image } = resolvedData;
+      if (defaultVariant && !image) {
         addValidationError('Default variant should have an image uploaded!');
       }
     },
@@ -178,22 +177,24 @@ export const ProductVariant = list({
       let originalVariant = originalItem as any;
 
       if (operation == "create" || operation == "update") {
-        if (variantInput.defaultVariant && variantInput.defaultVariant != originalVariant.defaultVariant) {
+        if (variantInput.defaultVariant && (originalVariant == undefined || variantInput.defaultVariant != originalVariant.defaultVariant)) {
           let v = await context.query.ProductVariant.findOne({
             where: { id: variantInput.id },
             query: ' product { variants { id defaultVariant } } '
           }) as any;
           let updateData: { where: { id: any; }; data: { defaultVariant: boolean; }; }[] = [];
-          v.product.variants.forEach((v: any) => {
-            if (v.defaultVariant && v.id != variantInput.id) {
-              updateData.push({
-                where: { id: v.id },
-                data: {
-                  defaultVariant: false
-                }
-              });
-            }
-          });
+          if (v.product) {
+            v.product.variants.forEach((v: any) => {
+              if (v.defaultVariant && v.id != variantInput.id) {
+                updateData.push({
+                  where: { id: v.id },
+                  data: {
+                    defaultVariant: false
+                  }
+                });
+              }
+            });  
+          }
           if (updateData.length > 0) {
             await context.db.ProductVariant.updateMany({
               data: updateData
