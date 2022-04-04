@@ -96,10 +96,69 @@ export default withAuth(
           console.log('Connected to the Firebase!');
         }
 
-        var stockCountRef = firebase.database().ref('stock/1-1');
-        stockCountRef.on('value', (snapshot: { val: () => any; }) => {
+        var syncRef = firebase.database().ref('sync');
+        syncRef.on('value', async (snapshot: { val: () => any; }) => {
           const data = snapshot.val();
-          console.log('Updated Stock: ' + data);
+          console.log('Syncing Data: ' + JSON.stringify(data));
+          if (data && data.orders != undefined) {
+            Object.keys(data.orders).forEach(async orderId => {
+              if (data.orders[orderId]) {
+                await firebase.database().ref().child("orders").child(orderId).get().then(async (snapshot: { exists: () => any; val: () => any; }) => {
+                  let order;
+                  if (snapshot.exists()) {
+                    order = snapshot.val();
+                  }
+                  let updatedOrder: any = {
+                    orderJSON: order
+                  };
+                  if (Array.isArray(data.orders[orderId]) && data.orders[orderId].includes('status')) {
+                    updatedOrder['status'] = order.status;
+                  }
+                  console.log('Updating order ' + orderId, updatedOrder)
+                  const updated = await context.db.Order.updateOne({
+                    where: { orderNumber: orderId },
+                    data: updatedOrder
+                  });
+                  if (updated) {
+                    await firebase.database().ref().child("sync").child("orders").child(orderId).set(null);
+                  }
+                }).catch((error: any) => {
+                  console.error(error);
+                });
+              }
+            });
+          }
+          if (data && data.stock != undefined) {
+            Object.keys(data.stock).forEach(async sku => {
+              if (data.stock[sku]) {
+                const updated = await context.db.Stock.updateOne({
+                  where: {
+                    sku: sku
+                  },
+                  data: {
+                    outboundStock: {
+                      create: {
+                        sku: {
+                          connect: {
+                            sku: sku
+                          }
+                        },
+                        stockQuantity: data.stock[sku].stockQuantity,
+                        order: {
+                          connect: {
+                            orderNumber: data.stock[sku].orderNumber
+                          }
+                        }
+                      }
+                    }
+                  }
+                });
+                if (updated) {
+                  await firebase.database().ref().child("sync").child("stock").child(sku).set(null);
+                }
+              }
+            });
+          }
         });
       },
     },

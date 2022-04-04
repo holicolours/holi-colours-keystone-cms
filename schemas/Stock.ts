@@ -175,7 +175,7 @@ export const Stock = list({
         if (!isNaN(stockInput.stock)) {
           const mailClient = createMailClient();
 
-          let lowStockThreshold = 5;
+          let lowStockThreshold = 2;
 
           if (stockInput.stock <= lowStockThreshold && stockInput.stock > 0 && stockInput.stock < s.stock) {
             const lowStockEmail = new email();

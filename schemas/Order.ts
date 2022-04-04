@@ -2,6 +2,7 @@ import { integer, text, relationship, virtual, select, timestamp, json } from '@
 import { list, graphql } from '@keystone-6/core';
 const nodemailer = require("nodemailer");
 const email = require('email-templates');
+var firebase = require('firebase-admin');
 
 function createMailClient() {
   return nodemailer.createTransport({
@@ -329,34 +330,39 @@ export const Order = list({
       let originalOrder = originalItem as any;
       let order = orderInput.orderJSON;
 
-      console.log('Status: ' + originalOrder.status + ' => ' + orderInput.status);
+      if (operation == "update" && order && originalOrder.status != orderInput.status) {
+        const updates: any = {};
+        updates[`orders/${orderInput.orderNumber}/status`] = orderInput.status;
+        updates[`orders/${orderInput.orderNumber}/lastUpdatedOn`] = new Date().getTime();
+        await firebase.database().ref().update(updates);
 
-      if (order && originalOrder.status != orderInput.status && statuses[orderInput.status].sendNotificationOnChange) {
-        const mailClient = createMailClient();
-        const orderConfirmationEmail = new email();
+        if (statuses[orderInput.status].sendNotificationOnChange) {
+          const mailClient = createMailClient();
+          const orderConfirmationEmail = new email();
 
-        let orderConfirmationHtmlMessage = await orderConfirmationEmail
-          .render('order/html', {
-            orderId: orderInput.orderNumber,
-            order: order,
-            creationDate: orderInput.orderDate,
-            header: statuses[orderInput.status].emailHeader,
-            content: statuses[orderInput.status].emailContent,
-            additionalContent: statuses[orderInput.status].emailAdditionalContent
-          })
-          .then((data: any) => {
-            return data;
-          })
-          .catch(console.error);
+          let orderConfirmationHtmlMessage = await orderConfirmationEmail
+            .render('order/html', {
+              orderId: orderInput.orderNumber,
+              order: order,
+              creationDate: orderInput.orderDate,
+              header: statuses[orderInput.status].emailHeader,
+              content: statuses[orderInput.status].emailContent,
+              additionalContent: statuses[orderInput.status].emailAdditionalContent
+            })
+            .then((data: any) => {
+              return data;
+            })
+            .catch(console.error);
 
-        const orderConfirmationEmailResponse = await mailClient.sendMail({
-          from: '"Holi Colours Jewellery" <holicoloursit@gmail.com>',
-          to: `${order.customer.firstName} ${order.customer.lastName} <${order.customer.email}>`,
-          subject: statuses[orderInput.status].emailSubject,
-          html: orderConfirmationHtmlMessage
-        });
+          const orderConfirmationEmailResponse = await mailClient.sendMail({
+            from: '"Holi Colours Jewellery" <holicoloursit@gmail.com>',
+            to: `${order.customer.firstName} ${order.customer.lastName} <${order.customer.email}>`,
+            subject: statuses[orderInput.status].emailSubject,
+            html: orderConfirmationHtmlMessage
+          });
 
-        console.log(orderConfirmationEmailResponse);
+          console.log(orderConfirmationEmailResponse);
+        }
       }
 
       // if (order && Array.isArray(order.cart.products) && order.cart.products.length > 0) {

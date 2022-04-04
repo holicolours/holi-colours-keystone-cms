@@ -19,7 +19,7 @@ div(marginwidth="0" marginheight="0" style="padding:0")
                                                 tr
                                                     td(valign="top" style="padding:48px 48px 32px")
                                                         div(style='color:#636363;font-family:"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;font-size:14px;line-height:150%;text-align:left')
-                                                            p(style="margin:0 0 16px") Hi #{order.customer.firstName}
+                                                            p(style="margin:0 0 16px") Hi #{order.customer.firstName},
                                                             p(style="margin:0 0 16px")!= content
                                                             - var options = { year: 'numeric', month: 'long', day: 'numeric' }
                                                             p(style='color:#96588a;display:block;font-family:"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;font-size:18px;font-weight:bold;line-height:130%;margin:0 0 18px;text-align:left') [Order ##{orderId}] (#{new Date(creationDate).toLocaleDateString("en-US", options)})
@@ -29,7 +29,7 @@ div(marginwidth="0" marginheight="0" style="padding:0")
                                                                         tr
                                                                             th(scope="col" style="color:#636363;border:1px solid #e5e5e5;vertical-align:middle;padding:12px;text-align:left") Product
                                                                             th(scope="col" style="color:#636363;border:1px solid #e5e5e5;vertical-align:middle;padding:12px;text-align:left") Quantity
-                                                                            th(scope="col" style="color:#636363;border:1px solid #e5e5e5;vertical-align:middle;padding:12px;text-align:left") Price
+                                                                            th(scope="col" style="color:#636363;border:1px solid #e5e5e5;vertical-align:middle;padding:12px;text-align:left") Unit Price
                                                                     tbody
                                                                         each i in Object.keys(order.cart.products)
                                                                             tr
