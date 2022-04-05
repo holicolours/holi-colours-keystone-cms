@@ -31,6 +31,7 @@ import { Offer } from './schemas/Offer';
 import { User } from './schemas/User';
 import { Customer } from './schemas/Customer';
 import { sendPasswordResetEmail } from './lib/mail';
+import { syncCustomer, syncOrder, syncStock } from './lib/sync';
 var firebase = require('firebase-admin');
 
 const serviceAccount = {
@@ -91,7 +92,14 @@ export default withAuth(
         if (!firebase.apps.length) {
           app = await firebase.initializeApp({
             credential: firebase.credential.cert(serviceAccount),
-            databaseURL: "https://holi-colours-jewellery-default-rtdb.asia-southeast1.firebasedatabase.app/"
+            apiKey: "AIzaSyAVKIXxd68CdLlJfzCcPtw47-dkJh2xJm0",
+            authDomain: "holi-colours-jewellery.firebaseapp.com",
+            projectId: "holi-colours-jewellery",
+            storageBucket: "holi-colours-jewellery.appspot.com",
+            messagingSenderId: "423060301267",
+            appId: "1:423060301267:web:e7f2dc25f8fb0703153b26",
+            databaseURL: "https://holi-colours-jewellery-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            measurementId: "G-LNR3MKCG8F"
           });
           console.log('Connected to the Firebase!');
         }
@@ -99,65 +107,27 @@ export default withAuth(
         var syncRef = firebase.database().ref('sync');
         syncRef.on('value', async (snapshot: { val: () => any; }) => {
           const data = snapshot.val();
+
           console.log('Syncing Data: ' + JSON.stringify(data));
-          if (data && data.orders != undefined) {
-            Object.keys(data.orders).forEach(async orderId => {
-              if (data.orders[orderId]) {
-                await firebase.database().ref().child("orders").child(orderId).get().then(async (snapshot: { exists: () => any; val: () => any; }) => {
-                  let order;
-                  if (snapshot.exists()) {
-                    order = snapshot.val();
-                  }
-                  let updatedOrder: any = {
-                    orderJSON: order
-                  };
-                  if (Array.isArray(data.orders[orderId]) && data.orders[orderId].includes('status')) {
-                    updatedOrder['status'] = order.status;
-                  }
-                  console.log('Updating order ' + orderId, updatedOrder)
-                  const updated = await context.db.Order.updateOne({
-                    where: { orderNumber: orderId },
-                    data: updatedOrder
-                  });
-                  if (updated) {
-                    await firebase.database().ref().child("sync").child("orders").child(orderId).set(null);
-                  }
-                }).catch((error: any) => {
-                  console.error(error);
-                });
-              }
-            });
-          }
-          if (data && data.stock != undefined) {
-            Object.keys(data.stock).forEach(async sku => {
-              if (data.stock[sku]) {
-                const updated = await context.db.Stock.updateOne({
-                  where: {
-                    sku: sku
-                  },
-                  data: {
-                    outboundStock: {
-                      create: {
-                        sku: {
-                          connect: {
-                            sku: sku
-                          }
-                        },
-                        stockQuantity: data.stock[sku].stockQuantity,
-                        order: {
-                          connect: {
-                            orderNumber: data.stock[sku].orderNumber
-                          }
-                        }
-                      }
-                    }
-                  }
-                });
-                if (updated) {
-                  await firebase.database().ref().child("sync").child("stock").child(sku).set(null);
-                }
-              }
-            });
+
+          if (data) {
+            if (data && data.customers != undefined) {
+              Object.keys(data.customers).forEach(async uid => {
+                syncCustomer(uid, data.customers[uid], context);
+              });
+            }
+
+            if (data.orders != undefined) {
+              Object.keys(data.orders).forEach(async orderId => {
+                syncOrder(orderId, data.orders[orderId], context);
+              });
+            }
+
+            if (data.stock != undefined) {
+              Object.keys(data.stock).forEach(async sku => {
+                syncStock(sku, data.stock[sku], context);
+              });
+            }
           }
         });
       },
